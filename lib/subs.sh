@@ -24,7 +24,7 @@ yk_ensure_utf8() {
   for yk_eu_try in "${yk_eu_enc}" windows-1252 iso-8859-1; do
     if iconv -f "${yk_eu_try}" -t utf-8 "$1" >"$1.tmp" 2>/dev/null && [ -s "$1.tmp" ]; then
       mv -f "$1.tmp" "$1"
-      yk_info "  subtitles converted from ${yk_eu_try} to UTF-8"
+      yk_info "Subtitles converted from ${yk_eu_try} to UTF-8."
       return 0
     fi
   done
@@ -47,13 +47,13 @@ yk_subs_source() {
     yk_ss_codec="$(yk_probe_stream "s:${YK_SUB_TRACK}" codec_name "${YK_INPUT}")"
     YK_SUB_KIND="$(yk_subs_codec_kind "${yk_ss_codec}")"
     if [ "${YK_SUB_KIND}" = bitmap ]; then
-      yk_error "subtitle stream ${YK_SUB_TRACK} is a picture, not text. Run it through OCR first,"
-      yk_error "for example Subtitle Edit or vobsub2srt, then pass the .srt file"
+      yk_error "subtitle stream ${YK_SUB_TRACK} is a picture, not text. run it through OCR first,"
+      yk_error "for example Subtitle Edit or vobsub2srt, then pass the .srt file."
       return 1
     fi
     "${YK_FFMPEG}" -hide_banner -nostdin -v error -y -i "${YK_INPUT}" -map "0:s:${YK_SUB_TRACK}" \
       -c:s ass "${YK_WORK}/source.ass" 2>/dev/null && return 0
-    yk_error "could not extract subtitle stream ${YK_SUB_TRACK} as text"
+    yk_error "could not extract subtitle stream ${YK_SUB_TRACK} as text."
     return 1
   fi
   cp -f -- "${YK_SUBTITLES}" "${YK_WORK}/source.sub" && yk_ensure_utf8 "${YK_WORK}/source.sub" || return 1
@@ -148,10 +148,10 @@ yk_subs_measure() {
   read -r yk_sm_w yk_sm_h yk_sm_x yk_sm_y <<ZONE
 ${yk_sm_zone}
 ZONE
-  yk_info "  measuring the picture under each subtitle"
+  yk_info "Measuring the picture under each subtitle."
   yk_sm_graph="[0:v:0]crop=${yk_sm_w}:${yk_sm_h}:${yk_sm_x}:${yk_sm_y},scale=192:24,fps=2,split[a][b];[a]signalstats,metadata=mode=print:key=lavfi.signalstats.YHIGH:file=yhigh.txt[x];[b]edgedetect=low=0.08:high=0.2,signalstats,metadata=mode=print:key=lavfi.signalstats.YAVG:file=edge.txt[y]"
   (cd "${YK_WORK}" && "${YK_FFMPEG}" -hide_banner -nostdin -v error -i "${YK_INPUT}" -an -sn -filter_complex "${yk_sm_graph}" -map '[x]' -f null - -map '[y]' -f null -) 2>"${YK_WORK}/measure.log" || {
-    yk_warning "could not measure the picture under the subtitles; every line gets an outline"
+    yk_warning "could not measure the picture under the subtitles; every line gets an outline."
     return 0
   }
   cat "${YK_WORK}/yhigh.txt" >>"${YK_WORK}/yhigh.log"
@@ -180,7 +180,7 @@ yk_subs_prepare() {
   yk_subs_play
   yk_subs_fill
   yk_subs_restyle "${YK_WORK}/source.ass" "${YK_WORK}/styled.ass" ||
-    yk_warning "the subtitle script had no PlayRes header; sizes may drift"
+    yk_warning "the subtitle script had no PlayRes header; sizes may drift."
   yk_subs_measure
   yk_subs_assign "${YK_WORK}/styled.ass" "${YK_SUB_MASTER}"
 }

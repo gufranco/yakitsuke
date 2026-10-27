@@ -112,7 +112,8 @@ yk_check_choice() {
   *" $2 "*) return 0 ;;
   *) ;;
   esac
-  yk_error "--$1 must be one of: $3. Got: $2"
+  yk_cc_text="$(printf '%s\n' "$3" | awk '{ for (i = 1; i <= NF; i++) out = out (i == 1 ? "" : (i == NF ? " or " : ", ")) $i; print out }')"
+  yk_error "--$1 must be ${yk_cc_text}, got: $2"
   return 1
 }
 
@@ -154,7 +155,7 @@ yk_args_validate_values() {
     return 1
   fi
   if [ "${YK_FORCE}" = yes ] && [ "${YK_RESUME}" = yes ]; then
-    yk_error "--force and --resume contradict each other; pick one"
+    yk_error "--force and --resume contradict each other; pick one."
     return 1
   fi
   return 0

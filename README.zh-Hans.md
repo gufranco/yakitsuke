@@ -20,28 +20,34 @@
 
 </div>
 
-一条命令，135 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
+一条命令，142 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
 
 ---
 
 ```console
-$ yakitsuke trailer.mp4 trailer.srt
-  measuring the picture under each subtitle
-Source     trailer.mp4
-  1920x1080, 2.347 display aspect, 0:00:40
-  black bars stripped, active picture 1920x818 at +0+130
-Target     FILM Video CD, 352x240 at 24000/1001 fps
-  picture 352x136 at +0+52, letterbox
-  deinterlace off, denoise off, sharpen yes
-  audio track 0
-  audio 0: aac, 1ch, und
-  subtitles burned in: 13 lines, 8 on a box, 5 outlined
-Media      80 min, 360000 sectors, 4784.000s usable per disc
-Plan       1 disc(s), 30s overlap, mpeg2enc
-Disc 1 of 1: encoding 40.000s from 0.000s
-  image 3690 of 360000 sectors, 1% full
-Disc 1 of 1: trailer_disc1.bin
-Wrote 1 Video CD image(s) to ~/Movies
+$ yakitsuke --output-dir ~/Movies trailer.mp4 trailer.srt
+Measuring the picture under each subtitle.
+
+Source: trailer.mp4
+        1920x1080, 2.400 display aspect, 0:00:20
+        black bars stripped, active picture 1920x800 at +0+140
+Target: FILM Video CD, 352x240 at 24000/1001 fps
+        picture 352x134 at +0+52, letterbox
+        deinterlace off, denoise off, sharpen yes
+        audio track 0
+        audio 0: aac, 1ch, und
+        subtitles burned in: 4 lines, 4 on a box, 0 outlined
+Media:  80 min, 360000 sectors, 4784.000s usable per disc
+Plan:   1 disc(s), 30s overlap, mpeg2enc
+
+Disc 1 of 1, encoding 20.020s from 0.000s
+Disc 1 of 1, encoding  18%  7.4x  0m02s left
+Disc 1 of 1, encoding  41%  5.5x  0m02s left
+Disc 1 of 1, encoding  62%  5.0x  0m01s left
+Disc 1 of 1, encoding  84%  4.7x  0m00s left
+Disc 1 of 1, encoding 100%  4.2x  0m00s left
+Disc 1 of 1: trailer_disc1.bin, 2187 of 360000 sectors, 0% full
+Wrote 1 Video CD image(s) to ~/Movies.
 ```
 
 <a id="quick-start"></a>
@@ -72,20 +78,30 @@ cd yakitsuke
 make install
 ```
 
-`make install` 把工具复制到 `~/.local`，并把 `yakitsuke` 放进 `~/.local/bin`；用 `PREFIX` 可以改变位置。
+`make install` 把工具、字体、man 手册以及 bash、zsh、fish 补全复制到 `~/.local`，并把 `yakitsuke` 放进 `~/.local/bin`；用 `PREFIX` 可以改变位置。Homebrew formula 安装的是同样的文件。
 
 ### 验证
 
 ```console
-$ yakitsuke --version
-yakitsuke 1.0.0
+$ yakitsuke doctor
+ffmpeg             ok       /opt/homebrew/bin/ffmpeg
+ffprobe            ok       /opt/homebrew/bin/ffprobe
+vcdxbuild          ok       /opt/homebrew/bin/vcdxbuild
+awk                ok       /usr/bin/awk
+sed                ok       /usr/bin/sed
+iconv              ok       /usr/bin/iconv
+file               ok       /usr/bin/file
+mpeg2enc           ok       /opt/homebrew/bin/mpeg2enc
+mplex              ok       /opt/homebrew/bin/mplex
+ffmpeg subtitles   ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
+ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 ```
 
 ## 用法
 
 | 命令 | 作用 |
 |:--------|:--------|
-| `yakitsuke <video> [subtitles]` | 把视频编码成所需数量的光盘镜像 |
+| `yakitsuke [options] <video> [subtitles]` | 把视频编码成所需数量的光盘镜像 |
 | 不带参数的 `yakitsuke` | 在终端中运行时，询问视频和字幕文件 |
 | `yakitsuke doctor` | 列出所需工具及是否已安装 |
 | `yakitsuke version`、`yakitsuke help` | 显示版本或完整用法 |
@@ -110,6 +126,8 @@ yakitsuke --cd74 --pal movie.mkv               # 胶片转 PAL：加速 4%，音
 yakitsuke --preview 30 movie.mkv movie.srt     # 先用 30 秒检查效果
 yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 ```
+
+也可以写成 `--overlap=10`，`--` 表示选项结束。yakitsuke 遵循同系列工具共用的命令行约定，详见 [FAMILY.md](FAMILY.md)。
 
 <a id="picture"></a>
 
@@ -161,8 +179,8 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 
 | 命令 | 说明 |
 |:--------|:------------|
-| `make lint` | 对所有脚本和测试运行 ShellCheck |
-| `make test` | 在系统 `sh` 下运行 135 个 `bats` 测试 |
+| `make lint` | 对所有脚本、测试和补全运行 ShellCheck，用 mandoc 检查 man 手册 |
+| `make test` | 在系统 `sh` 下运行 142 个 `bats` 测试 |
 | `make test-all` | 在所有已安装的 shell 下运行同样的测试 |
 | `make coverage` | bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
 

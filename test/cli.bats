@@ -241,7 +241,7 @@ teardown() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Source     --odd.mp4"* ]]
+  [[ "${output}" == *"Source: --odd.mp4"* ]]
 }
 
 @test "every invalid value is named in the error" {
@@ -255,11 +255,11 @@ teardown() {
     "--preview=x|--preview must be a whole number of seconds, got: x"
     "--audio-track=a|--audio-track must be a whole number of stream index, got: a"
     "--sub-track=b|--sub-track must be a whole number of stream index, got: b"
-    "--deinterlace=maybe|--deinterlace must be one of: auto on ivtc off. Got: maybe"
-    "--borders=x|--borders must be one of: auto off. Got: x"
-    "--sub-color=red|--sub-color must be one of: auto white yellow. Got: red"
-    "--sub-box=x|--sub-box must be one of: auto always never. Got: x"
-    "--encoder=x264|--encoder must be one of: auto mpeg2enc ffmpeg. Got: x264"
+    "--deinterlace=maybe|--deinterlace must be auto, on, ivtc or off, got: maybe"
+    "--borders=x|--borders must be auto or off, got: x"
+    "--sub-color=red|--sub-color must be auto, white or yellow, got: red"
+    "--sub-box=x|--sub-box must be auto, always or never, got: x"
+    "--encoder=x264|--encoder must be auto, mpeg2enc or ffmpeg, got: x264"
     "--sub-offset=1.2.3|--sub-offset must be a number of seconds, got: 1.2.3"
     "--denoise=hard|--denoise must be off or an fftdnoiz sigma such as 1.5, got: hard"
   )
@@ -284,7 +284,7 @@ teardown() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "yakitsuke: --force and --resume contradict each other; pick one" ]]
+  [[ "${output}" == "yakitsuke: --force and --resume contradict each other; pick one." ]]
 }
 
 @test "a missing source is named" {
@@ -321,7 +321,7 @@ teardown() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "yakitsuke: ffmpeg is not installed. Run 'yakitsuke doctor' for what is missing" ]]
+  [[ "${output}" == "yakitsuke: ffmpeg is not installed. run 'yakitsuke doctor' for what is missing." ]]
 }
 
 @test "subtitles without an ffmpeg that has libass explain the fix" {
@@ -350,7 +350,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "yakitsuke: ffprobe is not installed" ]]
+  [[ "${output}" == "yakitsuke: ffprobe is not installed." ]]
 }
 
 @test "asking for mpeg2enc without mjpegtools stops the run" {
@@ -363,7 +363,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "yakitsuke: --encoder mpeg2enc needs mpeg2enc and mplex from mjpegtools" ]]
+  [[ "${output}" == "yakitsuke: --encoder mpeg2enc needs mpeg2enc and mplex from mjpegtools." ]]
 }
 
 @test "a missing vcdxbuild stops the run before any work" {
@@ -376,7 +376,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "yakitsuke: missing tool: vcdxbuild. Run 'yakitsuke doctor' for how to install it" ]]
+  [[ "${output}" == "yakitsuke: missing tool: vcdxbuild. run 'yakitsuke doctor' for how to install it." ]]
 }
 
 @test "the tool runs by its bare name from inside its own folder" {
@@ -402,9 +402,56 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Target     FILM Video CD, 352x240 at 24000/1001 fps"* ]]
+  [[ "${output}" == *"Target: FILM Video CD, 352x240 at 24000/1001 fps"* ]]
   [[ "${output}" == *", letterbox"* ]]
   [[ "${output}" == *"sharpen yes"* ]]
-  [[ "${output}" == *"Media      80 min, 360000 sectors"* ]]
+  [[ "${output}" == *"Media:  80 min, 360000 sectors"* ]]
 }
 
+
+help_options() {
+  local page
+  page="$(yk_test_run help)" || return 1
+  awk '/^  --/ { for (i = 1; i <= NF; i++) if (match($i, /^--[a-z0-9][a-z0-9-]*/)) { name = substr($i, RSTART, RLENGTH); if (!seen[name]++) print name } }' <<<"${page}"
+}
+
+option_drift() {
+  local option name man_form missing="" listed completed
+  listed="$(help_options)" || return 1
+  completed="$(grep -oE -- "--[a-z0-9][a-z0-9-]*" "${REPO_DIR}/completions/yakitsuke.bash")" || return 1
+  for option in ${listed}; do
+    name="${option#--}"
+    man_form="\\-\\-${name//-/\\-}"
+    grep -qF -- "${man_form}" "${REPO_DIR}/man/yakitsuke.1" || missing="${missing} man:${option}"
+    grep -qE -- "(^|[ \"])${option}( |\"|$)" "${REPO_DIR}/completions/yakitsuke.bash" || missing="${missing} bash:${option}"
+    grep -qE -- "[')]${option}\\[" "${REPO_DIR}/completions/_yakitsuke" || missing="${missing} zsh:${option}"
+    grep -qE -- "-l ${name} " "${REPO_DIR}/completions/yakitsuke.fish" || missing="${missing} fish:${option}"
+  done
+  for option in ${completed}; do
+    grep -qx -- "${option}" <<<"${listed}" || missing="${missing} help:${option}"
+  done
+  printf '%s' "${missing}"
+}
+
+@test "help, man page and completions list the same options" {
+  # Arrange
+  local expected=""
+
+  # Act
+  run option_drift
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "${expected}" ]]
+}
+
+@test "the man page passes mandoc lint" {
+  # Arrange
+  local page="${REPO_DIR}/man/yakitsuke.1"
+
+  # Act
+  run mandoc -T lint "${page}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}

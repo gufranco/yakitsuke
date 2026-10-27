@@ -112,7 +112,7 @@ yk_ffmpeg_disc() {
   yk_fd_span="$(yk_calc "$3 * ${YK_SPEED}")"
   yk_fd_seek="$(yk_calc "$2 * ${YK_SPEED}")"
   yk_fd_map="0:a:${YK_AUDIO_TRACK}"
-  set -- -hide_banner -nostdin -v error -stats -y -ss "${yk_fd_seek}" -t "${yk_fd_span}" -i "${YK_INPUT}"
+  set -- -hide_banner -nostdin -v error -stats -progress progress.txt -y -ss "${yk_fd_seek}" -t "${yk_fd_span}" -i "${YK_INPUT}"
   if [ "${YK_HAS_AUDIO}" = no ]; then
     set -- "$@" -f lavfi -t "${yk_fd_span}" -i anullsrc=channel_layout=stereo:sample_rate=44100
     yk_fd_map="1:a:0"
@@ -143,16 +143,73 @@ yk_encode_with_mpeg2enc() {
   [ "${yk_em_status}" = 0 ] || return 1
   if ! mplex -f 1 -o "$3" "${YK_WORK}/video.m1v" "${YK_WORK}/audio.mp2" 2>"${YK_WORK}/mplex.log"; then
     if [ ! -s "$3" ]; then
-      yk_error "mplex failed"
+      yk_error "mplex failed."
       yk_detail "${YK_WORK}/mplex.log"
       return 2
     fi
-    yk_warning "mplex reported a buffer margin warning; the stream is checked next"
+    yk_warning "mplex reported a buffer margin warning; the stream is checked next."
   fi
   rm -f "${YK_WORK}/video.m1v" "${YK_WORK}/audio.mp2"
 }
 
+yk_progress_fields() {
+  awk -F= -v span="$1" '
+    /^out_time_us=/ { t = $2 / 1000000 }
+    /^speed=/ { v = $2; sub(/x$/, "", v); s = v + 0 }
+    END {
+      if (t == "") exit 1
+      p = (span > 0) ? int(t * 100 / span) : 0
+      if (p > 100) p = 100
+      left = (s > 0 && span > t) ? int((span - t) / s) : 0
+      printf "%d %.1fx %d\n", p, s, left
+    }' "${YK_WORK}/progress.txt" 2>/dev/null
+}
+
+yk_progress_show() {
+  yk_po_fields="$(yk_progress_fields "$1")" || return 0
+  read -r yk_po_pct yk_po_rate yk_po_left <<EOF
+${yk_po_fields}
+EOF
+  [ "$2" = final ] && yk_po_pct=100 && yk_po_left=0
+  yk_po_line="$(printf '%s %3d%%  %s  %dm%02ds left' "${YK_PROGRESS_LABEL}" "${yk_po_pct}" "${yk_po_rate}" $((yk_po_left / 60)) $((yk_po_left % 60)))"
+  if [ -t 2 ]; then
+    printf '\r%s   ' "${yk_po_line}" >&2
+    [ "$2" = final ] && printf '\n' >&2
+    return 0
+  fi
+  yk_po_step=$((yk_po_pct / 10))
+  if [ "$2" = final ] || { [ "${yk_po_pct}" -lt 100 ] && [ "${yk_po_step}" -gt "${YK_PROGRESS_STEP}" ]; }; then
+    YK_PROGRESS_STEP="${yk_po_step}"
+    yk_info "${yk_po_line}"
+  fi
+  return 0
+}
+
+yk_progress_watch() {
+  yk_pw_rounds=0
+  while [ -e "${YK_WORK}/encoding" ] && [ "${yk_pw_rounds}" -lt "${YK_PROGRESS_ROUNDS}" ]; do
+    sleep 1
+    yk_pw_rounds=$((yk_pw_rounds + 1))
+    [ -e "${YK_WORK}/encoding" ] && yk_progress_show "$1" tick
+  done
+  return 0
+}
+
 yk_encode_disc() {
+  rm -f "${YK_WORK}/progress.txt"
+  : >"${YK_WORK}/encoding"
+  YK_PROGRESS_STEP=0
+  yk_progress_watch "$2" &
+  yk_ed_watcher="$!"
+  yk_ed_status=0
+  yk_encode_run "$@" || yk_ed_status=1
+  rm -f "${YK_WORK}/encoding"
+  wait "${yk_ed_watcher}" 2>/dev/null
+  [ "${yk_ed_status}" -eq 0 ] && yk_progress_show "$2" final
+  return "${yk_ed_status}"
+}
+
+yk_encode_run() {
   YK_GRAPH="$(yk_filter_graph "$2")"
   yk_ed_audio="$(yk_audio_chain)"
   YK_AUDIO_FILTER="$(yk_join "${yk_ed_audio}")"
@@ -164,7 +221,7 @@ yk_encode_disc() {
   elif (cd "${YK_WORK}" && yk_ffmpeg_disc mpg "$1" "$2" "$3") 2>"${YK_WORK}/encode.log"; then
     return 0
   fi
-  yk_error "encoding failed"
+  yk_error "encoding failed."
   yk_detail "${YK_WORK}/encode.log"
   return 1
 }

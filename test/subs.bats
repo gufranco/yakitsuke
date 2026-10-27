@@ -158,7 +158,7 @@ yk_styles() {
   run yk_test_call call_subs "${BATS_FILE_TMPDIR}/black.mp4" "${WORK}/latin.srt"
 
   # Assert
-  [[ "${output}" == *"subtitles converted from iso-8859-1 to UTF-8"* ]]
+  [[ "${output}" == *"Subtitles converted from iso-8859-1 to UTF-8."* ]]
   [[ "${output}" == *"Linha 2 com acentuação: você não."* ]]
 }
 
@@ -235,7 +235,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"subtitle stream 0 is a picture, not text. Run it through OCR first,"* ]]
+  [[ "${output}" == *"subtitle stream 0 is a picture, not text. run it through OCR first,"* ]]
 }
 
 @test "a missing embedded track is reported" {
@@ -247,7 +247,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "yakitsuke: could not extract subtitle stream 3 as text" ]]
+  [[ "${output}" == "yakitsuke: could not extract subtitle stream 3 as text." ]]
 }
 
 @test "a subtitle file that is not text is refused" {

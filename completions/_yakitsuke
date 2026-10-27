@@ -1,0 +1,53 @@
+#compdef yakitsuke
+
+_yakitsuke() {
+  local -a commands
+  commands=(
+    'doctor:check the tools yakitsuke needs'
+    'version:print the version'
+    'help:print usage'
+  )
+
+  if (( CURRENT == 2 )) && [[ "${words[2]}" != -* ]]; then
+    _alternative 'commands:command:_describe command commands' 'files:video:_files'
+    return
+  fi
+
+  _arguments \
+    '(--cd80 --cd90 --disc-minutes)--cd74[74 minute media]' \
+    '(--cd74 --cd90 --disc-minutes)--cd80[80 minute media]' \
+    '(--cd74 --cd80 --disc-minutes)--cd90[90 minute media]' \
+    '(--cd74 --cd80 --cd90)--disc-minutes[explicit media length in minutes]:minutes:' \
+    '--overlap[footage repeated at each disc seam]:seconds:' \
+    '--scene-snap[move seams onto the nearest scene change]:seconds:' \
+    '--title[volume label and album id]:title:' \
+    '--chapters[entry point every N minutes]:minutes:' \
+    '(--pal --film)--ntsc[force 29.97 fps]' \
+    '(--ntsc --film)--pal[force 25 fps]' \
+    '(--ntsc --pal)--film[force 23.976 fps]' \
+    '(--crop)--letterbox[fit the whole frame with bars]' \
+    '(--letterbox)--crop[fill the frame]' \
+    '--borders[strip baked-in black bars]:mode:(auto off)' \
+    '--deinterlace[deinterlace mode]:mode:(auto on ivtc off)' \
+    '--denoise[fftdnoiz sigma]:sigma:' \
+    '(--no-sharpen)--sharpen[sharpen after the downscale]' \
+    '(--sharpen)--no-sharpen[skip the sharpening after the downscale]' \
+    '--no-color-convert[keep the source matrix]' \
+    '--audio-track[source audio stream index]:index:' \
+    '--normalize[EBU R128 loudness]' \
+    '--sub-track[burn an embedded text subtitle stream]:index:' \
+    '--sub-color[subtitle colour]:colour:(auto white yellow)' \
+    '--sub-box[subtitle background box]:mode:(auto always never)' \
+    '--sub-offset[shift every subtitle]:seconds:' \
+    '--sub-style[ASS style overrides]:spec:' \
+    '--encoder[MPEG-1 encoder]:encoder:(auto mpeg2enc ffmpeg)' \
+    '--output-dir[destination]:directory:_files -/' \
+    '--keep-mpeg[keep the MPEG-1 program streams]' \
+    '(--resume)--force[overwrite existing images]' \
+    '(--force)--resume[keep discs that already exist]' \
+    '--preview[encode one short sample]:seconds:' \
+    '--dry-run[print the plan and stop]' \
+    '*:file:_files'
+}
+
+_yakitsuke "$@"

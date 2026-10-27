@@ -44,10 +44,10 @@ PY
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Target     PAL Video CD, 352x288 at 25 fps"* ]]
+  [[ "${output}" == *"Target: PAL Video CD, 352x288 at 25 fps"* ]]
   local real
   real="$(cd "${OUT}" && pwd -P)"
-  [[ "${output}" == *"Wrote 1 Video CD image(s) to ${real}"* ]]
+  [[ "${output}" == *"Wrote 1 Video CD image(s) to ${real}."* ]]
   [[ -s "${OUT}/pal_disc1.bin" && -s "${OUT}/pal_disc1.cue" ]]
   local header
   header="$(yk_header "${OUT}/pal_disc1.mpg")"
@@ -111,7 +111,7 @@ PY
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Plan       1 disc(s), 30s overlap, ffmpeg"* ]]
+  [[ "${output}" == *"Plan:   1 disc(s), 30s overlap, ffmpeg"* ]]
   [[ -s "${OUT}/pal_disc1.bin" ]]
 }
 
@@ -138,7 +138,7 @@ PY
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"loudness measured, applying an exact correction"* ]]
+  [[ "${output}" == *"Loudness measured; applying an exact correction."* ]]
 }
 
 @test "a long source is split across discs with a seam overlap" {
@@ -150,7 +150,7 @@ PY
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Plan       2 disc(s), 5s overlap"* ]]
+  [[ "${output}" == *"Plan:   2 disc(s), 5s overlap"* ]]
   [[ -s "${OUT}/long_disc1.bin" && -s "${OUT}/long_disc2.bin" ]]
 }
 
@@ -163,7 +163,7 @@ PY
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"  disc 2: start "* ]]
+  [[ "${output}" == *"Disc 2 of 2 would hold "* ]]
   [[ ! -e "${OUT}/long_disc1.bin" ]]
 }
 
@@ -176,7 +176,7 @@ PY
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Plan       preview only, one 2s sample from the middle"* ]]
+  [[ "${output}" == *"Plan:   preview only, one 2s sample from the middle"* ]]
   [[ -s "${OUT}/long_preview_disc1.bin" ]]
 }
 
@@ -220,7 +220,7 @@ PY
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Disc 1 of 1: already present, keeping it"* ]]
+  [[ "${output}" == *"Disc 1 of 1: already present, keeping it."* ]]
 }
 
 @test "--resume encodes again a disc whose image cannot be used" {
@@ -247,7 +247,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"yakitsuke: encoding failed"* ]]
+  [[ "${output}" == *"yakitsuke: encoding failed."* ]]
   [[ "${output}" == *"boom from ffmpeg"* ]]
 }
 
@@ -260,7 +260,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"yakitsuke: encoding failed"* ]]
+  [[ "${output}" == *"yakitsuke: encoding failed."* ]]
 }
 
 @test "a failing ffmpeg encoder stops the run" {
@@ -273,7 +273,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"yakitsuke: encoding failed"* ]]
+  [[ "${output}" == *"yakitsuke: encoding failed."* ]]
 }
 
 @test "mplex failing without output stops the run" {
@@ -366,7 +366,7 @@ head -c 11000000 /dev/zero >>\"\$4\""
   # Assert
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"seams snapped to the nearest scene change within 15s"* ]]
-  [[ "${output}" == *"  disc 1: start 0.000s, length 30.000s"* ]]
+  [[ "${output}" == *"Disc 1 of 2 would hold 30.000s from 0.000s: "* ]]
 }
 
 @test "an interrupted run removes its working folder" {

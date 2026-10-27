@@ -10,9 +10,11 @@ yakitsuke - burn any video onto Video CD: VCD 2.0 BIN/CUE images, split across d
 usage:
   yakitsuke                               ask for the video and subtitles, step by step
   yakitsuke [options] <video> [subtitles]
-  yakitsuke doctor
-  yakitsuke version
-  yakitsuke help
+                                          encode the video into as many disc images as
+                                          it needs
+  yakitsuke doctor                        check the tools yakitsuke needs
+  yakitsuke version                       print the version
+  yakitsuke help                          print this page
 
 disc:
   --cd74 | --cd80 | --cd90   74, 80 (default) or 90 minute media
@@ -31,7 +33,7 @@ picture:
   --borders auto|off         strip baked-in black bars first (default auto)
   --deinterlace MODE         auto, on, ivtc or off (default auto)
   --denoise SIGMA            fftdnoiz sigma, e.g. 1.5 (default off)
-  --no-sharpen               skip the mild sharpening after the downscale
+  --sharpen | --no-sharpen   mild sharpening after the downscale (default on)
   --no-color-convert         keep the source matrix instead of BT.601
 
 sound:
@@ -63,8 +65,9 @@ environment:
                              with the filters the run needs
 
 notes:
-  A file named help, doctor or version is encoded by giving its path, such
-  as ./help.
+  Every option that takes a value also takes the form --name=value, and --
+  ends the options. A file named help, doctor or version is encoded by giving
+  its path, such as ./help.
 
 examples:
   yakitsuke movie.mkv

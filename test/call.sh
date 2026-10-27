@@ -71,6 +71,12 @@ call_graph() {
   yk_filter_graph "${1:-10}"
 }
 
+call_progress() {
+  YK_WORK="$1"
+  YK_PROGRESS_LABEL="Disc 1 of 1, encoding"
+  yk_progress_show "$2" "$3"
+}
+
 call_snap_plan() {
   YK_USABLE="$3"
   yk_snap_plan "$1" "$2" "$4" "$5"

@@ -35,12 +35,12 @@ yk_image_sectors() {
 }
 
 yk_verify_image() {
-  yk_vi_sectors="$(yk_image_sectors "$1")"
-  if [ "${yk_vi_sectors}" -gt "${YK_CAPACITY}" ]; then
-    yk_error "the image needs ${yk_vi_sectors} sectors and the media holds ${YK_CAPACITY}"
+  YK_IMAGE_SECTORS="$(yk_image_sectors "$1")"
+  if [ "${YK_IMAGE_SECTORS}" -gt "${YK_CAPACITY}" ]; then
+    yk_error "the image needs ${YK_IMAGE_SECTORS} sectors and the media holds ${YK_CAPACITY}."
     return 1
   fi
-  yk_info "  image ${yk_vi_sectors} of ${YK_CAPACITY} sectors, $((yk_vi_sectors * 100 / YK_CAPACITY))% full"
+  return 0
 }
 
 yk_build_image() {
@@ -49,7 +49,7 @@ yk_build_image() {
   yk_bi_album="$(yk_iso_label "${YK_TITLE}")"
   yk_write_xml "${yk_bi_xml}" "$2" "${yk_bi_label}" "${yk_bi_album}" "${YK_TOTAL}" "$1" "$5"
   if ! vcdxbuild -c "$4" -b "$3" "${yk_bi_xml}" 2>"${YK_WORK}/vcdxbuild.log" >"${YK_WORK}/vcdxbuild.out"; then
-    yk_error "vcdxbuild failed on disc $1"
+    yk_error "vcdxbuild failed on disc $1."
     yk_detail "${YK_WORK}/vcdxbuild.log"
     return 2
   fi

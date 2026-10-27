@@ -216,3 +216,75 @@ setup_file() {
   [[ "${output}" == *"<volume-count>2</volume-count>"* ]]
   rm -f "${xml}"
 }
+
+progress_file() {
+  printf 'frame=10\nout_time_us=%s\nspeed=%s\nprogress=continue\n' "$1" "$2" >"${BATS_TEST_TMPDIR:?}/progress.txt"
+}
+
+on_terminal() {
+  case "$(uname -s)" in
+  Darwin) script -q /dev/null "$@" </dev/null ;;
+  *) script -qec "$(printf '%q ' "$@")" /dev/null </dev/null ;;
+  esac
+}
+
+@test "progress prints the share done, the speed and the time left" {
+  # Arrange
+  progress_file 42000000 2.0x
+
+  # Act
+  run yk_test_call call_progress "${BATS_TEST_TMPDIR:?}" 100 tick
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "Disc 1 of 1, encoding  42%  2.0x  0m29s left" ]]
+}
+
+@test "progress leaves the finished line to the end of the encode" {
+  # Arrange
+  progress_file 100000000 3.5x
+
+  # Act
+  run yk_test_call call_progress "${BATS_TEST_TMPDIR:?}" 100 tick
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "" ]]
+}
+
+@test "the final progress line reads 100 percent with nothing left" {
+  # Arrange
+  progress_file 99800000 3.5x
+
+  # Act
+  run yk_test_call call_progress "${BATS_TEST_TMPDIR:?}" 100 final
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "Disc 1 of 1, encoding 100%  3.5x  0m00s left" ]]
+}
+
+@test "progress stays quiet before ffmpeg reports anything" {
+  # Arrange
+  rm -f "${BATS_TEST_TMPDIR:?}/progress.txt"
+
+  # Act
+  run yk_test_call call_progress "${BATS_TEST_TMPDIR:?}" 100 tick
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "" ]]
+}
+
+@test "progress redraws one line on a terminal" {
+  # Arrange
+  local -a shell_words
+  read -r -a shell_words <<<"${YK_SHELL:-sh}"
+  progress_file 50000000 1.0x
+
+  # Act
+  run on_terminal env PATH="${PATH}" "${shell_words[@]}" "${YK_TESTS_DIR}/call.sh" call_progress "${BATS_TEST_TMPDIR:?}" 100 final
+
+  # Assert
+  [[ "${output}" == *"Disc 1 of 1, encoding 100%  1.0x  0m00s left"* ]]
+}

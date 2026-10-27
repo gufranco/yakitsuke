@@ -92,3 +92,7 @@ export LC_ALL
 : "${YK_SUB_KIND:=text}"
 : "${YK_ARGS_USED:=1}"
 : "${YK_ARGS_DONE:=no}"
+: "${YK_IMAGE_SECTORS:=0}"
+: "${YK_PROGRESS_LABEL:=Encoding}"
+: "${YK_PROGRESS_STEP:=0}"
+: "${YK_PROGRESS_ROUNDS:=172800}"

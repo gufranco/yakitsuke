@@ -27,24 +27,24 @@ yk_run_tools() {
   { [ -n "${YK_SUBTITLES}" ] || [ -n "${YK_SUB_TRACK}" ]; } && yk_rt_subs=yes
   if ! YK_FFMPEG="$(yk_resolve_ffmpeg "${yk_rt_subs}")"; then
     if [ "${yk_rt_subs}" = yes ]; then
-      yk_error "no ffmpeg with the 'subtitles' filter was found. Burning subtitles needs libass:"
-      yk_error "brew install ffmpeg-full, or point YAKITSUKE_FFMPEG at a suitable build"
+      yk_error "no ffmpeg with the 'subtitles' filter was found. burning subtitles needs libass:"
+      yk_error "brew install ffmpeg-full, or point YAKITSUKE_FFMPEG at a suitable build."
     else
-      yk_error "ffmpeg is not installed. Run '${YK_PROG} doctor' for what is missing"
+      yk_error "ffmpeg is not installed. run '${YK_PROG} doctor' for what is missing."
     fi
     return 1
   fi
   YK_FFPROBE="$(yk_resolve_ffprobe)" || {
-    yk_error "ffprobe is not installed"
+    yk_error "ffprobe is not installed."
     return 1
   }
   YK_ENCODER="$(yk_resolve_encoder)" || {
-    yk_error "--encoder mpeg2enc needs mpeg2enc and mplex from mjpegtools"
+    yk_error "--encoder mpeg2enc needs mpeg2enc and mplex from mjpegtools."
     return 1
   }
   for yk_rt_tool in vcdxbuild awk sed iconv file; do
     yk_cmd_exists "${yk_rt_tool}" && continue
-    yk_error "missing tool: ${yk_rt_tool}. Run '${YK_PROG} doctor' for how to install it"
+    yk_error "missing tool: ${yk_rt_tool}. run '${YK_PROG} doctor' for how to install it."
     return 1
   done
   YK_ZSCALE=no
@@ -108,29 +108,31 @@ yk_run_plan() {
 }
 
 yk_run_report() {
-  yk_info "Source     $(basename -- "${YK_INPUT}")"
+  printf '\n'
+  yk_info "Source: $(basename -- "${YK_INPUT}")"
   yk_rr_aspect="$(awk -v d="${YK_DAR}" 'BEGIN { printf "%.3f", d }')"
   yk_rr_clock="$(yk_clock "${YK_DURATION}")"
-  yk_info "  ${YK_SRC_W}x${YK_SRC_H}, ${yk_rr_aspect} display aspect, ${yk_rr_clock}"
-  yk_bordered && yk_info "  black bars stripped, active picture ${YK_ACTIVE_W}x${YK_ACTIVE_H} at +${YK_BORDER_X}+${YK_BORDER_Y}"
+  yk_info "        ${YK_SRC_W}x${YK_SRC_H}, ${yk_rr_aspect} display aspect, ${yk_rr_clock}"
+  yk_bordered && yk_info "        black bars stripped, active picture ${YK_ACTIVE_W}x${YK_ACTIVE_H} at +${YK_BORDER_X}+${YK_BORDER_Y}"
   yk_rr_name="$(printf '%s' "${YK_STANDARD}" | tr '[:lower:]' '[:upper:]')"
-  yk_info "Target     ${yk_rr_name} Video CD, 352x${YK_RASTER_H} at ${YK_FPS} fps"
-  [ "${YK_SPEED}" = 1 ] || yk_info "  film sped up to 25 fps, ${YK_SPEED}x, pitch kept"
-  yk_info "  picture ${YK_INNER_W}x${YK_INNER_H} at +${YK_RPAD_X}+${YK_RPAD_Y}, ${YK_FIT}"
-  yk_info "  deinterlace ${YK_FIELD_MODE}, denoise ${YK_DENOISE}, sharpen ${YK_SHARPEN}"
-  if [ "${YK_HAS_AUDIO}" = yes ]; then yk_info "  audio track ${YK_AUDIO_TRACK}"; else yk_info "  audio silent, the source has none"; fi
-  [ -z "${YK_TRACKS}" ] || printf '%s\n' "${YK_TRACKS}" | while IFS= read -r yk_rr_line; do yk_info "  ${yk_rr_line}"; done
+  yk_info "Target: ${yk_rr_name} Video CD, 352x${YK_RASTER_H} at ${YK_FPS} fps"
+  [ "${YK_SPEED}" = 1 ] || yk_info "        film sped up to 25 fps, ${YK_SPEED}x, pitch kept"
+  yk_info "        picture ${YK_INNER_W}x${YK_INNER_H} at +${YK_RPAD_X}+${YK_RPAD_Y}, ${YK_FIT}"
+  yk_info "        deinterlace ${YK_FIELD_MODE}, denoise ${YK_DENOISE}, sharpen ${YK_SHARPEN}"
+  if [ "${YK_HAS_AUDIO}" = yes ]; then yk_info "        audio track ${YK_AUDIO_TRACK}"; else yk_info "        audio silent, the source has none"; fi
+  [ -z "${YK_TRACKS}" ] || printf '%s\n' "${YK_TRACKS}" | while IFS= read -r yk_rr_line; do yk_info "        ${yk_rr_line}"; done
   if [ -n "${YK_SUB_MASTER}" ]; then
     yk_rr_subs="$(yk_run_sub_summary)"
-    yk_info "  subtitles burned in: ${yk_rr_subs}"
+    yk_info "        subtitles burned in: ${yk_rr_subs}"
   fi
-  yk_info "Media      ${YK_DISC_MINUTES} min, ${YK_CAPACITY} sectors, ${YK_USABLE}s usable per disc"
+  yk_info "Media:  ${YK_DISC_MINUTES} min, ${YK_CAPACITY} sectors, ${YK_USABLE}s usable per disc"
   if [ "${YK_PREVIEW}" -gt 0 ]; then
-    yk_info "Plan       preview only, one ${YK_PREVIEW}s sample from the middle, ${YK_ENCODER}"
+    yk_info "Plan:   preview only, one ${YK_PREVIEW}s sample from the middle, ${YK_ENCODER}"
   else
-    yk_info "Plan       ${YK_TOTAL} disc(s), ${YK_OVERLAP}s overlap, ${YK_ENCODER}"
+    yk_info "Plan:   ${YK_TOTAL} disc(s), ${YK_OVERLAP}s overlap, ${YK_ENCODER}"
   fi
-  [ "${YK_SNAPPED:-no}" = no ] || yk_info "  seams snapped to the nearest scene change within ${YK_SCENE_SNAP}s"
+  [ "${YK_SNAPPED:-no}" = no ] || yk_info "        seams snapped to the nearest scene change within ${YK_SCENE_SNAP}s"
+  printf '\n'
   return 0
 }
 
@@ -144,7 +146,7 @@ yk_run_sub_summary() {
 yk_run_dry() {
   yk_rd_index=1
   while IFS=' ' read -r yk_rd_start yk_rd_span; do
-    yk_info "  disc ${yk_rd_index}: start ${yk_rd_start}s, length ${yk_rd_span}s -> ${YK_OUTPUT_DIR}/${YK_STEM}_disc${yk_rd_index}.bin"
+    yk_info "Disc ${yk_rd_index} of ${YK_TOTAL} would hold ${yk_rd_span}s from ${yk_rd_start}s: ${YK_OUTPUT_DIR}/${YK_STEM}_disc${yk_rd_index}.bin"
     yk_rd_index=$((yk_rd_index + 1))
   done <<EOF2
 ${YK_PLAN}
@@ -155,20 +157,20 @@ yk_run_loudness() {
   YK_LOUDNORM=""
   [ "${YK_NORMALIZE}" = yes ] || return 0
   if [ "${YK_HAS_AUDIO}" = yes ] && YK_LOUDNORM="$(yk_loudnorm_measure "${YK_INPUT}")" && [ -n "${YK_LOUDNORM}" ]; then
-    yk_info "  loudness measured, applying an exact correction"
+    yk_info "Loudness measured; applying an exact correction."
     return 0
   fi
   YK_LOUDNORM="loudnorm=I=-20:TP=-2:LRA=11"
-  yk_warning "loudness measurement failed, falling back to single-pass normalisation"
+  yk_warning "loudness measurement failed, falling back to single-pass normalisation."
 }
 
 yk_run_existing() {
   if [ "${YK_RESUME}" = yes ] && [ -s "$2" ] && [ -s "$3" ]; then
     if yk_verify_image "$2" >/dev/null 2>&1; then
-      yk_info "Disc $1 of ${YK_TOTAL}: already present, keeping it"
+      yk_info "Disc $1 of ${YK_TOTAL}: already present, keeping it."
       return 0
     fi
-    yk_warning "disc $1 of ${YK_TOTAL}: the existing image is unusable, encoding it again"
+    yk_warning "disc $1 of ${YK_TOTAL}: the existing image is unusable, encoding it again."
     return 1
   fi
   if [ "${YK_FORCE}" != yes ] && [ "${YK_RESUME}" != yes ] && { [ -e "$2" ] || [ -e "$3" ]; }; then
@@ -191,14 +193,15 @@ yk_run_disc() {
   if [ -n "${YK_SUB_MASTER}" ]; then
     yk_subs_shift "${YK_SUB_MASTER}" "${YK_WORK}/subtitles.ass" "$2" "$3" || return 2
   fi
-  yk_info "Disc $1 of ${YK_TOTAL}: encoding $3s from $2s"
+  yk_info "Disc $1 of ${YK_TOTAL}, encoding $3s from $2s"
+  YK_PROGRESS_LABEL="Disc $1 of ${YK_TOTAL}, encoding"
   yk_encode_disc "$2" "$3" "${yk_rn_mpg}" || return 2
   yk_verify_stream "${yk_rn_mpg}" || return 2
   yk_rn_entries=""
   [ "${YK_CHAPTERS}" -eq 0 ] || yk_rn_entries="$(yk_entry_points "${YK_INPUT}" "$3" "$2")"
   yk_build_image "$1" "${yk_rn_mpg}" "${yk_rn_bin}" "${yk_rn_cue}" "${yk_rn_entries}" || return "$?"
   [ "${YK_KEEP_MPEG}" = no ] || mv -f "${yk_rn_mpg}" "${YK_OUTPUT_DIR}/${YK_STEM}_disc$1.mpg"
-  yk_info "Disc $1 of ${YK_TOTAL}: $(basename -- "${yk_rn_bin}")"
+  yk_info "Disc $1 of ${YK_TOTAL}: $(basename -- "${yk_rn_bin}"), ${YK_IMAGE_SECTORS} of ${YK_CAPACITY} sectors, $((YK_IMAGE_SECTORS * 100 / YK_CAPACITY))% full"
 }
 
 yk_run_discs() {
@@ -215,10 +218,10 @@ yk_run_discs() {
 ${YK_PLAN}
 EOF2
   if [ "${yk_rs_full}" -gt 0 ]; then
-    yk_error "${yk_rs_full} image(s) do not fit the selected media"
+    yk_error "${yk_rs_full} image(s) do not fit the selected media."
     return 1
   fi
-  yk_info "Wrote ${YK_TOTAL} Video CD image(s) to ${YK_OUTPUT_DIR}"
+  yk_info "Wrote ${YK_TOTAL} Video CD image(s) to ${YK_OUTPUT_DIR}."
 }
 
 yk_run() {

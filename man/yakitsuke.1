@@ -1,0 +1,143 @@
+.TH YAKITSUKE 1 "2026-10-27" "yakitsuke" "User Commands"
+.SH NAME
+yakitsuke \- turn any video into Video CD images with readable subtitles
+.SH SYNOPSIS
+.B yakitsuke
+.br
+.B yakitsuke
+.RI [ options ] " video " [ subtitles ]
+.br
+.B yakitsuke doctor
+.br
+.B yakitsuke version
+.br
+.B yakitsuke help
+.SH DESCRIPTION
+.B yakitsuke
+encodes a video into VCD 2.0 BIN/CUE images, splitting it across as many
+discs as it needs with a short overlap at each seam. Film stays at 23.976
+frames per second, interlaced and telecined sources are detected, and every
+stream is checked for Video CD conformance before an image is written.
+.PP
+Subtitles are burned in. Each line is measured against the picture under it
+and gets a background box when that picture is bright or busy, and an outline
+otherwise.
+.SH COMMANDS
+.TP
+.B doctor
+List the tools yakitsuke needs and whether each is installed. Exits non-zero
+only when a required tool is missing.
+.TP
+.B version
+Print the version and the platform.
+.TP
+.B help
+Print the usage page.
+.SH OPTIONS
+.SS Disc
+.TP
+.BR \-\-cd74 ", " \-\-cd80 ", " \-\-cd90
+74, 80 or 90 minute media. Default 80.
+.TP
+.BI \-\-disc\-minutes " N"
+Explicit media length in minutes.
+.TP
+.BI \-\-overlap " seconds"
+Footage repeated at each disc seam. Default 30.
+.TP
+.BI \-\-scene\-snap " seconds"
+Move seams onto the nearest scene change within this many seconds; 0
+disables. Default 15.
+.TP
+.BI \-\-title " text"
+Volume label and album id. Default the file name.
+.TP
+.BI \-\-chapters " minutes"
+An entry point every N minutes, snapped to scene changes; 0 disables.
+Default 5.
+.SS Picture
+.TP
+.BR \-\-ntsc ", " \-\-pal ", " \-\-film
+Force 29.97, 25 or 23.976 frames per second. Default from the source; 24 fps
+film stays film and is never duplicated.
+.TP
+.BR \-\-letterbox ", " \-\-crop
+Fit the whole frame with bars, the default, or fill the screen.
+.TP
+.BI \-\-borders " auto|off"
+Strip baked-in black bars first. Default auto.
+.TP
+.BI \-\-deinterlace " mode"
+auto, on, ivtc or off. Default auto.
+.TP
+.BI \-\-denoise " sigma"
+fftdnoiz sigma, such as 1.5. Default off.
+.TP
+.BR \-\-sharpen ", " \-\-no\-sharpen
+Mild sharpening after the downscale. Default on.
+.TP
+.B \-\-no\-color\-convert
+Keep the source matrix instead of BT.601.
+.SS Sound
+.TP
+.BI \-\-audio\-track " N"
+Source audio stream index. Default 0.
+.TP
+.B \-\-normalize
+EBU R128 loudness, measured first for an exact correction.
+.SS Subtitles
+.TP
+.BI \-\-sub\-track " N"
+Burn an embedded text subtitle stream.
+.TP
+.BI \-\-sub\-color " auto|white|yellow"
+Default auto: white, yellow for black-and-white film.
+.TP
+.BI \-\-sub\-box " auto|always|never"
+Default auto: a box behind lines on a bright or busy picture, an outline
+elsewhere.
+.TP
+.BI \-\-sub\-offset " seconds"
+Shift every subtitle; a negative value pulls them earlier.
+.TP
+.BI \-\-sub\-style " spec"
+ASS style overrides, such as Fontsize=22.
+.SS Encoder and output
+.TP
+.BI \-\-encoder " auto|mpeg2enc|ffmpeg"
+Default auto: mpeg2enc when mjpegtools is installed.
+.TP
+.BI \-\-output\-dir " dir"
+Destination. Default next to the source.
+.TP
+.B \-\-keep\-mpeg
+Keep the MPEG-1 program streams.
+.TP
+.B \-\-force
+Overwrite existing images.
+.TP
+.B \-\-resume
+Keep discs that already exist and verify.
+.TP
+.BI \-\-preview " seconds"
+Encode one short sample from the middle.
+.TP
+.B \-\-dry\-run
+Print the plan and stop.
+.PP
+Every option that takes a value also takes the form
+.IR \-\-name = value ,
+and
+.B \-\-
+ends the options.
+.SH ENVIRONMENT
+.TP
+.B YAKITSUKE_FFMPEG
+The ffmpeg to use. Otherwise the first build on the path with the filters the
+run needs.
+.SH EXIT STATUS
+0 when every image was written and fits its media, 1 on any failure.
+.SH SEE ALSO
+.BR ffmpeg (1),
+.BR mpeg2enc (1),
+.BR vcdxbuild (1)

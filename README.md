@@ -20,28 +20,34 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 135 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
+One command, 142 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
 
 ---
 
 ```console
-$ yakitsuke trailer.mp4 trailer.srt
-  measuring the picture under each subtitle
-Source     trailer.mp4
-  1920x1080, 2.347 display aspect, 0:00:40
-  black bars stripped, active picture 1920x818 at +0+130
-Target     FILM Video CD, 352x240 at 24000/1001 fps
-  picture 352x136 at +0+52, letterbox
-  deinterlace off, denoise off, sharpen yes
-  audio track 0
-  audio 0: aac, 1ch, und
-  subtitles burned in: 13 lines, 8 on a box, 5 outlined
-Media      80 min, 360000 sectors, 4784.000s usable per disc
-Plan       1 disc(s), 30s overlap, mpeg2enc
-Disc 1 of 1: encoding 40.000s from 0.000s
-  image 3690 of 360000 sectors, 1% full
-Disc 1 of 1: trailer_disc1.bin
-Wrote 1 Video CD image(s) to ~/Movies
+$ yakitsuke --output-dir ~/Movies trailer.mp4 trailer.srt
+Measuring the picture under each subtitle.
+
+Source: trailer.mp4
+        1920x1080, 2.400 display aspect, 0:00:20
+        black bars stripped, active picture 1920x800 at +0+140
+Target: FILM Video CD, 352x240 at 24000/1001 fps
+        picture 352x134 at +0+52, letterbox
+        deinterlace off, denoise off, sharpen yes
+        audio track 0
+        audio 0: aac, 1ch, und
+        subtitles burned in: 4 lines, 4 on a box, 0 outlined
+Media:  80 min, 360000 sectors, 4784.000s usable per disc
+Plan:   1 disc(s), 30s overlap, mpeg2enc
+
+Disc 1 of 1, encoding 20.020s from 0.000s
+Disc 1 of 1, encoding  18%  7.4x  0m02s left
+Disc 1 of 1, encoding  41%  5.5x  0m02s left
+Disc 1 of 1, encoding  62%  5.0x  0m01s left
+Disc 1 of 1, encoding  84%  4.7x  0m00s left
+Disc 1 of 1, encoding 100%  4.2x  0m00s left
+Disc 1 of 1: trailer_disc1.bin, 2187 of 360000 sectors, 0% full
+Wrote 1 Video CD image(s) to ~/Movies.
 ```
 
 <a id="quick-start"></a>
@@ -72,20 +78,30 @@ cd yakitsuke
 make install
 ```
 
-`make install` copies the tool under `~/.local` and puts `yakitsuke` in `~/.local/bin`; set `PREFIX` to change that.
+`make install` copies the tool, its fonts, its man page and its bash, zsh and fish completions under `~/.local`, and puts `yakitsuke` in `~/.local/bin`; set `PREFIX` to change that. The Homebrew formula installs the same files.
 
 ### Verify
 
 ```console
-$ yakitsuke --version
-yakitsuke 1.0.0
+$ yakitsuke doctor
+ffmpeg             ok       /opt/homebrew/bin/ffmpeg
+ffprobe            ok       /opt/homebrew/bin/ffprobe
+vcdxbuild          ok       /opt/homebrew/bin/vcdxbuild
+awk                ok       /usr/bin/awk
+sed                ok       /usr/bin/sed
+iconv              ok       /usr/bin/iconv
+file               ok       /usr/bin/file
+mpeg2enc           ok       /opt/homebrew/bin/mpeg2enc
+mplex              ok       /opt/homebrew/bin/mplex
+ffmpeg subtitles   ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
+ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 ```
 
 ## Usage
 
 | Command | Purpose |
 |:--------|:--------|
-| `yakitsuke <video> [subtitles]` | Encode the video into as many disc images as it needs |
+| `yakitsuke [options] <video> [subtitles]` | Encode the video into as many disc images as it needs |
 | `yakitsuke` with no arguments | Ask for the video and the subtitle file, when run in a terminal |
 | `yakitsuke doctor` | List the tools yakitsuke needs and whether they are installed |
 | `yakitsuke version`, `yakitsuke help` | Print the version or the full usage page |
@@ -110,6 +126,8 @@ yakitsuke --cd74 --pal movie.mkv               # PAL from film: sped up 4%, pitc
 yakitsuke --preview 30 movie.mkv movie.srt     # check the look on 30 seconds first
 yakitsuke --resume movie.mkv movie.srt         # finish an interrupted run
 ```
+
+`--overlap=10` works too, and `--` ends the options. yakitsuke follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
 
 <a id="picture"></a>
 
@@ -161,8 +179,8 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites r
 
 | Command | Description |
 |:--------|:------------|
-| `make lint` | ShellCheck on every script and test |
-| `make test` | The 135 `bats` tests under the system `sh` |
+| `make lint` | ShellCheck on every script, test and completion, and mandoc on the man page |
+| `make test` | The 142 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make coverage` | bashcov line coverage, with the 100% gate CI enforces |
 
