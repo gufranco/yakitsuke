@@ -20,7 +20,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 142 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
+One command, 156 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
 
 ---
 
@@ -87,9 +87,9 @@ $ yakitsuke doctor
 ffmpeg             ok       /opt/homebrew/bin/ffmpeg
 ffprobe            ok       /opt/homebrew/bin/ffprobe
 vcdxbuild          ok       /opt/homebrew/bin/vcdxbuild
-awk                ok       /usr/bin/awk
-sed                ok       /usr/bin/sed
-iconv              ok       /usr/bin/iconv
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+iconv              ok       /usr/bin/iconv, bsd
 file               ok       /usr/bin/file
 mpeg2enc           ok       /opt/homebrew/bin/mpeg2enc
 mplex              ok       /opt/homebrew/bin/mplex
@@ -173,6 +173,8 @@ Styled `.ass` files keep their author's styling. Picture-based tracks such as PG
 
 Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites run on macOS under `/bin/sh` and `zsh`, and on Ubuntu under `dash` and `zsh`.
 
+Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with its own BSD tools, Homebrew's GNU tools or Homebrew's uutils tools. CI runs the whole suite on each, and `yakitsuke doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
+
 <a id="development"></a>
 
 ## Development
@@ -180,7 +182,7 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites r
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script, test and completion, and mandoc on the man page |
-| `make test` | The 142 `bats` tests under the system `sh` |
+| `make test` | The 156 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make coverage` | bashcov line coverage, with the 100% gate CI enforces |
 

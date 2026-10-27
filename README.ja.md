@@ -20,7 +20,7 @@
 
 </div>
 
-コマンドは一つ、テストは 142 件、シェルモジュールは 11 個。POSIX システムと、操作する映像ツール以外に実行時の依存はありません。`yakitsuke` は「焼き付け」です。映画を CD に焼き、字幕を映像に焼き付けます。姉妹ツールの [kakikomi](https://github.com/gufranco/kakikomi) と [kiyome](https://github.com/gufranco/kiyome) はディスクの書き込みと消去を行います。
+コマンドは一つ、テストは 156 件、シェルモジュールは 11 個。POSIX システムと、操作する映像ツール以外に実行時の依存はありません。`yakitsuke` は「焼き付け」です。映画を CD に焼き、字幕を映像に焼き付けます。姉妹ツールの [kakikomi](https://github.com/gufranco/kakikomi) と [kiyome](https://github.com/gufranco/kiyome) はディスクの書き込みと消去を行います。
 
 ---
 
@@ -87,9 +87,9 @@ $ yakitsuke doctor
 ffmpeg             ok       /opt/homebrew/bin/ffmpeg
 ffprobe            ok       /opt/homebrew/bin/ffprobe
 vcdxbuild          ok       /opt/homebrew/bin/vcdxbuild
-awk                ok       /usr/bin/awk
-sed                ok       /usr/bin/sed
-iconv              ok       /usr/bin/iconv
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+iconv              ok       /usr/bin/iconv, bsd
 file               ok       /usr/bin/file
 mpeg2enc           ok       /opt/homebrew/bin/mpeg2enc
 mplex              ok       /opt/homebrew/bin/mplex
@@ -173,6 +173,8 @@ yakitsuke --resume movie.mkv movie.srt         # 中断した処理を完了
 
 すべて POSIX `sh` で、ShellCheck `-o all` の指摘はゼロです。テストは macOS の `/bin/sh` と `zsh`、Ubuntu の `dash` と `zsh` で実行します。
 
+Linux の GNU coreutils と uutils coreutils、macOS 標準の BSD ツール、Homebrew の GNU ツール、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。CI はそれぞれで全テストを実行し、`yakitsuke doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
+
 <a id="development"></a>
 
 ## 開発
@@ -180,7 +182,7 @@ yakitsuke --resume movie.mkv movie.srt         # 中断した処理を完了
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプト、テスト、補完に ShellCheck、man ページに mandoc |
-| `make test` | システムの `sh` で 142 件の `bats` テスト |
+| `make test` | システムの `sh` で 156 件の `bats` テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make coverage` | bashcov の行カバレッジと、CI が強制する 100% のゲート |
 

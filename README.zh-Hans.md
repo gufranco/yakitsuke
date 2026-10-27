@@ -20,7 +20,7 @@
 
 </div>
 
-一条命令，142 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
+一条命令，156 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
 
 ---
 
@@ -87,9 +87,9 @@ $ yakitsuke doctor
 ffmpeg             ok       /opt/homebrew/bin/ffmpeg
 ffprobe            ok       /opt/homebrew/bin/ffprobe
 vcdxbuild          ok       /opt/homebrew/bin/vcdxbuild
-awk                ok       /usr/bin/awk
-sed                ok       /usr/bin/sed
-iconv              ok       /usr/bin/iconv
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+iconv              ok       /usr/bin/iconv, bsd
 file               ok       /usr/bin/file
 mpeg2enc           ok       /opt/homebrew/bin/mpeg2enc
 mplex              ok       /opt/homebrew/bin/mplex
@@ -173,6 +173,8 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 
 全部是 POSIX `sh`，ShellCheck `-o all` 零告警。测试在 macOS 的 `/bin/sh` 和 `zsh`、Ubuntu 的 `dash` 和 `zsh` 下运行。
 
+它能在五种常用工具集上运行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 自带的 BSD 工具、Homebrew 的 GNU 工具或 Homebrew 的 uutils 工具。CI 在每种工具集上运行全部测试，`yakitsuke doctor` 会列出每个核心工具的类型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，让错误报告说明用的是哪些工具。
+
 <a id="development"></a>
 
 ## 开发
@@ -180,7 +182,7 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 | 命令 | 说明 |
 |:--------|:------------|
 | `make lint` | 对所有脚本、测试和补全运行 ShellCheck，用 mandoc 检查 man 手册 |
-| `make test` | 在系统 `sh` 下运行 142 个 `bats` 测试 |
+| `make test` | 在系统 `sh` 下运行 156 个 `bats` 测试 |
 | `make test-all` | 在所有已安装的 shell 下运行同样的测试 |
 | `make coverage` | bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
 
