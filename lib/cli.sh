@@ -90,10 +90,55 @@ yk_doctor_row() {
   printf '%-18s %-8s %s\n' "$1" "$2" "$3"
 }
 
+yk_flavor_version() {
+  printf '%s\n' "$1" | awk '{
+    for (i = 1; i <= NF; i++) {
+      t = $i
+      gsub(/[,;()]/, "", t)
+      sub(/^v/, "", t)
+      if (t ~ /^[0-9]+(\.[0-9]+)+[a-z0-9]*$/ || t ~ /^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]$/) { print t; exit }
+    }
+  }'
+}
+
+yk_tool_flavor() {
+  yk_tf_raw="$("$1" --version 2>&1 </dev/null)" || true
+  yk_tf_text="$(printf '%s\n' "${yk_tf_raw}" | sed -n '1p')"
+  yk_tf_version="$(yk_flavor_version "${yk_tf_text}")"
+  yk_tf_os="${YK_OS:-}"
+  [ -n "${yk_tf_os}" ] || yk_tf_os="$(uname -s)"
+  case "${yk_tf_text}" in
+  *uutils*) yk_tf_name=uutils ;;
+  *BusyBox*) yk_tf_name=busybox ;;
+  *GNU* | *GLIBC* | *"(coreutils)"* | *"(diffutils)"*) yk_tf_name=gnu ;;
+  *mawk*) yk_tf_name=mawk ;;
+  *"awk version"* | *"(Darwin)"*) yk_tf_name=bsd ;;
+  *)
+    yk_tf_version=""
+    case "$1:${yk_tf_os}" in
+    *uutils*:* | */cargo/*:*) yk_tf_name=uutils ;;
+    *:Darwin | *:*BSD) yk_tf_name=bsd ;;
+    *) yk_tf_name=unknown ;;
+    esac
+    ;;
+  esac
+  printf '%s%s\n' "${yk_tf_name}" "${yk_tf_version:+ ${yk_tf_version}}"
+}
+
+yk_doctor_found() {
+  yk_dfo_note=""
+  case "${1##*/}" in
+  awk | sed | iconv) yk_dfo_note="$(yk_tool_flavor "$1")" ;;
+  *) ;;
+  esac
+  printf '%s%s\n' "$1" "${yk_dfo_note:+, ${yk_dfo_note}}"
+}
+
 yk_doctor_tool() {
   yk_dt_found="$(command -v "$1" 2>/dev/null || true)"
   if [ -n "${yk_dt_found}" ]; then
-    yk_doctor_row "$1" ok "${yk_dt_found}"
+    yk_dt_detail="$(yk_doctor_found "${yk_dt_found}")"
+    yk_doctor_row "$1" ok "${yk_dt_detail}"
     return 0
   fi
   yk_doctor_row "$1" missing "$3"

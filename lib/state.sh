@@ -96,3 +96,4 @@ export LC_ALL
 : "${YK_PROGRESS_LABEL:=Encoding}"
 : "${YK_PROGRESS_STEP:=0}"
 : "${YK_PROGRESS_ROUNDS:=172800}"
+: "${YK_OS:=}"
