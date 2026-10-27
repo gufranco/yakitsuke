@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.2.0](https://github.com/gufranco/yakitsuke/compare/v1.1.0...v1.2.0) (2026-10-27)
+
+
+### Features
+
+* **doctor:** name the flavor of each core tool ([3543045](https://github.com/gufranco/yakitsuke/commit/35430456d0f0bc2347b04aa2dba06cd2d7e6f2d7))
+
 # [1.1.0](https://github.com/gufranco/yakitsuke/compare/v1.0.0...v1.1.0) (2026-10-27)
 
 
