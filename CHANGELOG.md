@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0](https://github.com/gufranco/yakitsuke/compare/v1.0.0...v1.1.0) (2026-10-27)
+
+
+### Features
+
+* **cli:** follow the family command-line contract ([b01e39b](https://github.com/gufranco/yakitsuke/commit/b01e39bb5a7d79dd1d265c5a753a3662175e1623))
+
 # 1.0.0 (2026-10-27)
 
 
