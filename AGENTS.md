@@ -30,6 +30,7 @@ yakitsuke is one of four tools that share a single command-line contract: [FAMIL
 
 ## Hard rules
 
+- 100% shell script, with zero ShellCheck errors and zero warnings, and it works under `sh`, `bash` and `zsh` on both Linux and macOS (owner's rule, 2026-10-25). CI proves every combination on each push; a finding or a failure in any one of them blocks the change.
 - It runs on all five toolsets in [FAMILY.md](FAMILY.md): Linux with GNU coreutils, Linux with uutils coreutils, macOS with the BSD tools it ships, macOS with Homebrew's GNU tools, and macOS with Homebrew's uutils tools. Never use an option one of them lacks; where they differ, handle each one in code and cover it with a test. A change that passes on one toolset only is not done.
 - CI runs the suite on every toolset through [`scripts/toolset.sh`](scripts/toolset.sh). To reproduce a report, put the reporter's toolset first: `export PATH="$(sh scripts/toolset.sh gnu | paste -sd: -):$PATH"`.
 - `doctor` names the flavor and version of every core tool it lists, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`. A new core dependency gets a `doctor` row with its flavor in the same change.

@@ -140,8 +140,8 @@ Every member runs on the five toolsets in common use, and CI runs the whole suit
 
 ## Quality
 
-- POSIX `sh`, tested under `sh`, `dash`, `bash` and `zsh`.
-- ShellCheck at zero findings.
+- 100% shell script in POSIX `sh`, working under `sh`, `dash`, `bash` and `zsh` on both Linux and macOS, each combination tested in CI.
+- ShellCheck at zero errors and zero warnings.
 - `bats` tests that drive the real tools, injecting faults only through small wrappers on `PATH`.
 - 100 percent bashcov line coverage, gated in CI.
 - No comments in source, apart from tool directives and the `Arrange`, `Act`, `Assert` markers in tests.
