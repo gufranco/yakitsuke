@@ -58,6 +58,9 @@ jobs:
             shell: zsh
             toolset: native
           - runner: ubuntu-26.04
+            shell: bash
+            toolset: native
+          - runner: ubuntu-26.04
             shell: dash
             toolset: gnu
           - runner: ubuntu-26.04
@@ -68,6 +71,9 @@ jobs:
             toolset: native
           - runner: macos-26
             shell: zsh
+            toolset: native
+          - runner: macos-26
+            shell: bash
             toolset: native
           - runner: macos-26
             shell: /bin/sh
