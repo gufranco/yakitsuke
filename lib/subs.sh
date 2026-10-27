@@ -106,12 +106,12 @@ yk_subs_styles() {
 
 yk_subs_restyle() {
   yk_rs_styles="$(yk_subs_styles)"
-  awk -v pw="${YK_PLAY_W}" -v ph="${YK_PLAY_H}" -v styles="${yk_rs_styles}" '
+  YK_STYLES="${yk_rs_styles}" awk -v pw="${YK_PLAY_W}" -v ph="${YK_PLAY_H}" '
     /^PlayResX:/ { print "PlayResX: " pw; x = 1; next }
     /^PlayResY:/ { print "PlayResY: " ph; y = 1; next }
     /^ScaledBorderAndShadow:/ { print "ScaledBorderAndShadow: yes"; print "WrapStyle: 0"; s = 1; next }
     /^WrapStyle:/ { next }
-    /^Style: / { if (!done) print styles; done = 1; next }
+    /^Style: / { if (!done) print ENVIRON["YK_STYLES"]; done = 1; next }
     { print }
     END { exit !(x && y && s && done) }' "$1" >"$2"
 }
