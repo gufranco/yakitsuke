@@ -1,12 +1,13 @@
 # The family standard
 
-fusho, kakikomi, kiyome and yakitsuke are one family of command-line tools. They look, read and behave alike, so a person who knows one already knows how to drive the others. This file is the contract they share.
+The tools in the table below are one family of command-line tools. They look, read and behave alike, so a person who knows one already knows how to drive the others. This file is the contract they share.
 
 | Member | What it does | Repository |
 |:-------|:-------------|:-----------|
 | fusho | Sends an encrypted message through any chat, using the recipient's published SSH keys | [gufranco/fusho](https://github.com/gufranco/fusho) |
 | kakikomi | Writes a disk image to removable media, verified chunk by chunk, never mounted | [gufranco/kakikomi](https://github.com/gufranco/kakikomi) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
+| shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
 | yakitsuke | Turns any video into Video CD images, split across discs, with readable subtitles | [gufranco/yakitsuke](https://github.com/gufranco/yakitsuke) |
 
 ## How a repository joins
@@ -14,7 +15,7 @@ fusho, kakikomi, kiyome and yakitsuke are one family of command-line tools. They
 Copy this file in unchanged, follow it, and add the repository to the table above in every member in the same task. Everything above the closing line is shared and must match across the members; with the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho kakikomi kiyome yakitsuke; do
+for member in fusho kakikomi kiyome shiwake yakitsuke; do
   diff <(sed '/^---$/q' FAMILY.md) <(sed '/^---$/q' "../${member}/FAMILY.md")
 done
 ```
@@ -117,12 +118,13 @@ Every member runs on the five toolsets in common use, and CI runs the whole suit
 |:--------|:-----------|
 | Linux, uutils | Ubuntu's default since 25.10: uutils coreutils, with GNU sed and mawk |
 | Linux, GNU | GNU coreutils and gawk |
-| macOS, BSD | The tools macOS ships |
-| macOS, GNU | Homebrew's coreutils, findutils, gnu-sed, gawk, grep and diffutils, first on `PATH` |
+| macOS, native | Everything macOS ships, first on `PATH`: its BSD tools, bash 3.2, zsh, perl, openssl and the rest |
+| macOS, Homebrew | Homebrew's current build of every tool macOS also ships, first on `PATH`: coreutils, findutils, gnu-sed, gawk, grep, diffutils, bash, zsh, and each member's own, such as openssl@3, curl, perl, libarchive, gzip, bzip2, libiconv or file-formula |
 | macOS, uutils | Homebrew's uutils-coreutils, uutils-diffutils and uutils-findutils, first on `PATH` |
 
 - A script uses only options all five accept. Where they differ, the code handles each one and a test covers it.
-- `scripts/toolset.sh gnu` or `scripts/toolset.sh uutils` prints the directories that put a toolset first on `PATH`; CI uses it, and so can a person reproducing a report.
+- Any tool macOS ships that Homebrew also builds in a newer version is tested in both: the macOS native toolset runs the system's copy, and the macOS Homebrew toolset runs Homebrew's. A member that starts calling such a tool adds its formula to the Homebrew leg in CI.
+- `scripts/toolset.sh native`, `homebrew`, `gnu` or `uutils` prints the directories that put a toolset first on `PATH`; CI uses it, and so can a person reproducing a report.
 
 ## Documentation
 
@@ -141,13 +143,13 @@ Every member runs on the five toolsets in common use, and CI runs the whole suit
 ## Quality
 
 - 100% shell script in POSIX `sh`, working under `sh`, `dash`, `bash` and `zsh` on both Linux and macOS, each combination tested in CI.
+- On macOS, `bash` and `zsh` each mean two shells, and all four are tested: the system's `/bin/bash`, which is bash 3.2, and `/bin/zsh`, next to Homebrew's current builds in `$(brew --prefix)/bin`. Code that runs under bash uses nothing bash 3.2 lacks.
 - ShellCheck at zero errors and zero warnings.
 - `bats` tests that drive the real tools, injecting faults only through small wrappers on `PATH`.
 - 100 percent bashcov line coverage, gated in CI.
 - No comments in source, apart from tool directives and the `Arrange`, `Act`, `Assert` markers in tests.
 - Make targets: `help`, `lint`, `test`, `coverage`, `check`, `install`.
 - Conventional commits pushed to `main`; semantic-release cuts the version.
-
 ---
 
 *Everything above this line is identical in every member. A member may add sections below it about its own state, and nothing may be added above it that the others do not also get.*

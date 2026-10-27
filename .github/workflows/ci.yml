@@ -70,14 +70,20 @@ jobs:
             shell: /bin/sh
             toolset: native
           - runner: macos-26
-            shell: zsh
+            shell: /bin/bash
             toolset: native
           - runner: macos-26
-            shell: bash
+            shell: /bin/zsh
             toolset: native
           - runner: macos-26
             shell: /bin/sh
-            toolset: gnu
+            toolset: homebrew
+          - runner: macos-26
+            shell: /opt/homebrew/bin/bash
+            toolset: homebrew
+          - runner: macos-26
+            shell: /opt/homebrew/bin/zsh
+            toolset: homebrew
           - runner: macos-26
             shell: /bin/sh
             toolset: uutils
@@ -93,24 +99,28 @@ jobs:
           sudo apt-get install -y -qq bats dash zsh ffmpeg mjpegtools vcdimager mandoc
       - name: Install shells and tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install --formula bats-core dash ffmpeg-full mjpegtools vcdimager
+        run: brew install --formula bats-core bash dash zsh ffmpeg-full mjpegtools vcdimager
       - name: Install the GNU toolset (Linux)
         if: runner.os == 'Linux' && matrix.toolset == 'gnu'
         run: sudo apt-get install -y -qq gnu-coreutils gawk
       - name: Install the uutils toolset (Linux)
         if: runner.os == 'Linux' && matrix.toolset == 'uutils'
         run: sudo apt-get install -y -qq rust-coreutils
-      - name: Install the GNU toolset (macOS)
-        if: runner.os == 'macOS' && matrix.toolset == 'gnu'
-        run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils
+      - name: Install the Homebrew toolset (macOS)
+        if: runner.os == 'macOS' && matrix.toolset == 'homebrew'
+        run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils libiconv file-formula
       - name: Install the uutils toolset (macOS)
         if: runner.os == 'macOS' && matrix.toolset == 'uutils'
         run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
       - name: Put the ${{ matrix.toolset }} toolset first on PATH
-        if: matrix.toolset != 'native'
         env:
           TOOLSET: ${{ matrix.toolset }}
         run: sh scripts/toolset.sh "${TOOLSET}" "${RUNNER_TEMP}/toolset" >> "${GITHUB_PATH}"
+      - name: Show which shell runs the suites
+        if: contains(matrix.shell, 'bash') || contains(matrix.shell, 'zsh')
+        env:
+          SHELL_UNDER_TEST: ${{ matrix.shell }}
+        run: '"${SHELL_UNDER_TEST}" --version | head -n 1'
       - name: Show which tools the run uses
         run: sh bin/yakitsuke doctor
       - name: Run the suites under ${{ matrix.shell }}

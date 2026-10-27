@@ -2,7 +2,7 @@
 set -eu
 
 usage() {
-  printf 'usage: sh scripts/toolset.sh native|gnu|uutils [farm-dir]\n' >&2
+  printf 'usage: sh scripts/toolset.sh native|homebrew|gnu|uutils [farm-dir]\n' >&2
   exit 1
 }
 
@@ -19,6 +19,24 @@ darwin_dirs() {
       fi
     done
   done
+}
+
+darwin_kegs() {
+  for formula in "$@"; do
+    if [ -d "${prefix}/opt/${formula}/bin" ]; then
+      printf '%s\n' "${prefix}/opt/${formula}/bin"
+    fi
+  done
+}
+
+darwin_system() {
+  printf '%s\n' /usr/bin /bin /usr/sbin /sbin
+}
+
+darwin_homebrew() {
+  darwin_dirs coreutils findutils gnu-sed gawk grep
+  darwin_kegs diffutils openssl@3 curl libarchive bzip2 libiconv file-formula
+  printf '%s\n' "${prefix}/bin"
 }
 
 linux_gnu_farm() {
@@ -47,11 +65,9 @@ if [ "${os}" = Darwin ]; then
 fi
 
 case "${toolset}:${os}" in
+native:Darwin) darwin_system ;;
 native:*) ;;
-gnu:Darwin)
-  darwin_dirs coreutils findutils gnu-sed gawk grep
-  printf '%s\n' "${prefix}/opt/diffutils/bin"
-  ;;
+homebrew:Darwin | gnu:Darwin) darwin_homebrew ;;
 gnu:Linux) linux_gnu_farm ;;
 uutils:Darwin) darwin_dirs uutils-coreutils uutils-diffutils uutils-findutils ;;
 uutils:Linux) linux_uutils_farm ;;

@@ -8,7 +8,8 @@ failed=0
 if [ -n "${YK_SHELLS:-}" ]; then
   shells="${YK_SHELLS}"
 elif [ "${os}" = "Darwin" ]; then
-  shells="/bin/sh|dash|bash|bash --posix|zsh"
+  brew_bin="$(brew --prefix 2>/dev/null || printf /opt/homebrew)/bin"
+  shells="/bin/sh|dash|/bin/bash|/bin/bash --posix|${brew_bin}/bash|${brew_bin}/bash --posix|/bin/zsh|${brew_bin}/zsh"
 else
   shells="dash|bash|bash --posix|zsh|/bin/sh"
 fi

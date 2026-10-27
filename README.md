@@ -171,9 +171,9 @@ Styled `.ass` files keep their author's styling. Picture-based tracks such as PG
 
 ## Portability
 
-Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites run on macOS under `/bin/sh` and `zsh`, and on Ubuntu under `dash` and `zsh`.
+Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites run on macOS under `/bin/sh`, the system's bash 3.2 and zsh, and Homebrew's current bash and zsh, and on Ubuntu under `dash`, `bash` and `zsh`.
 
-Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with its own BSD tools, Homebrew's GNU tools or Homebrew's uutils tools. CI runs the whole suite on each, and `yakitsuke doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
+Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with the tools it ships, Homebrew's newer builds of them, or Homebrew's uutils tools. Every tool macOS ships that Homebrew also builds newer, from bash and zsh to iconv and file, is tested in both builds. CI runs the whole suite on each, and `yakitsuke doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
 
 <a id="development"></a>
 
