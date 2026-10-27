@@ -1,0 +1,73 @@
+#!/bin/sh
+[ -n "${ZSH_VERSION:-}" ] && emulate sh
+
+yk_self="$0"
+case "${yk_self}" in
+  */*) ;;
+  *) yk_self="$(command -v -- "${yk_self}")" ;;
+esac
+YK_LIB="$(cd "${yk_self%/*}/../lib" && pwd)" || exit 1
+YK_SHARE="$(cd "${yk_self%/*}/../share" && pwd)" || exit 1
+
+# shellcheck source=SCRIPTDIR/../lib/core.sh
+. "${YK_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/cli.sh
+. "${YK_LIB}/cli.sh"
+# shellcheck source=SCRIPTDIR/../lib/args.sh
+. "${YK_LIB}/args.sh"
+# shellcheck source=SCRIPTDIR/../lib/probe.sh
+. "${YK_LIB}/probe.sh"
+# shellcheck source=SCRIPTDIR/../lib/geometry.sh
+. "${YK_LIB}/geometry.sh"
+# shellcheck source=SCRIPTDIR/../lib/plan.sh
+. "${YK_LIB}/plan.sh"
+# shellcheck source=SCRIPTDIR/../lib/subs.sh
+. "${YK_LIB}/subs.sh"
+# shellcheck source=SCRIPTDIR/../lib/encode.sh
+. "${YK_LIB}/encode.sh"
+# shellcheck source=SCRIPTDIR/../lib/image.sh
+. "${YK_LIB}/image.sh"
+# shellcheck source=SCRIPTDIR/../lib/run.sh
+. "${YK_LIB}/run.sh"
+
+yk_cleanup() {
+  [ -n "${YK_WORK}" ] && rm -rf "${YK_WORK}"
+  YK_WORK=""
+}
+
+yk_interrupted() {
+  yk_cleanup
+  exit 130
+}
+
+yk_ask() {
+  YK_INPUT="$(yk_ask_required "Video file" "no video given")" || return 1
+  YK_SUBTITLES="$(yk_prompt "Subtitle file, Enter for none" "")" || return 1
+}
+
+yk_start() {
+  yk_args_parse "$@" || return 1
+  if [ -z "${YK_INPUT}" ]; then
+    if ! yk_interactive; then
+      yk_cli_hint "no video given"
+      return 1
+    fi
+    yk_ask || return 1
+  fi
+  yk_args_validate || return 1
+  YK_WORK="$(mktemp -d "${TMPDIR:-/tmp}/yakitsuke.XXXXXX")" || return 1
+  trap yk_cleanup EXIT
+  trap yk_interrupted INT TERM HUP
+  yk_run
+}
+
+yk_main() {
+  case "${1:-}" in
+    help | -h | --help) yk_usage ;;
+    version | -V | --version) yk_cli_version ;;
+    doctor) yk_doctor ;;
+    *) yk_start "$@" ;;
+  esac
+}
+
+yk_main "$@"
