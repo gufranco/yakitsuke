@@ -44,7 +44,7 @@ jobs:
         run: pipx run yamllint==1.37.1 -s -c .yamllint.yml .github .yamllint.yml
 
   test:
-    name: test (${{ matrix.runner }}, ${{ matrix.shell }})
+    name: test (${{ matrix.runner }}, ${{ matrix.shell }}, ${{ matrix.toolset }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     strategy:
@@ -53,12 +53,28 @@ jobs:
         include:
           - runner: ubuntu-26.04
             shell: dash
+            toolset: native
           - runner: ubuntu-26.04
             shell: zsh
+            toolset: native
+          - runner: ubuntu-26.04
+            shell: dash
+            toolset: gnu
+          - runner: ubuntu-26.04
+            shell: dash
+            toolset: uutils
           - runner: macos-26
             shell: /bin/sh
+            toolset: native
           - runner: macos-26
             shell: zsh
+            toolset: native
+          - runner: macos-26
+            shell: /bin/sh
+            toolset: gnu
+          - runner: macos-26
+            shell: /bin/sh
+            toolset: uutils
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -72,6 +88,25 @@ jobs:
       - name: Install shells and tools (macOS)
         if: runner.os == 'macOS'
         run: brew install --formula bats-core dash ffmpeg-full mjpegtools vcdimager
+      - name: Install the GNU toolset (Linux)
+        if: runner.os == 'Linux' && matrix.toolset == 'gnu'
+        run: sudo apt-get install -y -qq gnu-coreutils gawk
+      - name: Install the uutils toolset (Linux)
+        if: runner.os == 'Linux' && matrix.toolset == 'uutils'
+        run: sudo apt-get install -y -qq rust-coreutils
+      - name: Install the GNU toolset (macOS)
+        if: runner.os == 'macOS' && matrix.toolset == 'gnu'
+        run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils
+      - name: Install the uutils toolset (macOS)
+        if: runner.os == 'macOS' && matrix.toolset == 'uutils'
+        run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
+      - name: Put the ${{ matrix.toolset }} toolset first on PATH
+        if: matrix.toolset != 'native'
+        env:
+          TOOLSET: ${{ matrix.toolset }}
+        run: sh scripts/toolset.sh "${TOOLSET}" "${RUNNER_TEMP}/toolset" >> "${GITHUB_PATH}"
+      - name: Show which tools the run uses
+        run: sh bin/yakitsuke doctor
       - name: Run the suites under ${{ matrix.shell }}
         env:
           YK_SHELLS: ${{ matrix.shell }}
