@@ -5,6 +5,7 @@ The tools in the table below are one family of command-line tools. They look, re
 | Member | What it does | Repository |
 |:-------|:-------------|:-----------|
 | fusho | Sends an encrypted message through any chat, using the recipient's published SSH keys | [gufranco/fusho](https://github.com/gufranco/fusho) |
+| jimaku | Downloads subtitles for videos and saves them as UTF-8 | [gufranco/jimaku](https://github.com/gufranco/jimaku) |
 | kakikomi | Writes a disk image to removable media, verified chunk by chunk, never mounted | [gufranco/kakikomi](https://github.com/gufranco/kakikomi) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
 | shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
@@ -15,7 +16,7 @@ The tools in the table below are one family of command-line tools. They look, re
 Copy this file in unchanged, follow it, and add the repository to the table above in every member in the same task. Everything above the closing line is shared and must match across the members; with the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho kakikomi kiyome shiwake yakitsuke; do
+for member in fusho jimaku kakikomi kiyome shiwake yakitsuke; do
   diff <(sed '/^---$/q' FAMILY.md) <(sed '/^---$/q' "../${member}/FAMILY.md")
 done
 ```
