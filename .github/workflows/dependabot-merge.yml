@@ -1,0 +1,51 @@
+---
+name: dependabot-merge
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-merge-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    name: merge a green Dependabot pull request
+    if: >-
+      github.event.workflow_run.conclusion == 'success'
+      && github.event.workflow_run.event == 'pull_request'
+      && github.event.workflow_run.actor.login == 'dependabot[bot]'
+      && startsWith(github.event.workflow_run.head_branch, 'dependabot/')
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - name: Squash-merge the pull request at the commit CI verified
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          number="$(gh pr list --repo "${REPO}" --head "${BRANCH}" --state open \
+            --author app/dependabot --json number -q '.[0].number')"
+          if [ -z "${number}" ]; then
+            echo "no open Dependabot pull request for ${BRANCH}"
+            exit 0
+          fi
+          title="$(gh pr view "${number}" --repo "${REPO}" --json title -q .title)"
+          gh pr merge "${number}" --repo "${REPO}" --squash \
+            --match-head-commit "${HEAD_SHA}" \
+            --subject "${title} (#${number})" \
+            --body "Dependabot update, merged after CI passed on ${HEAD_SHA}."
