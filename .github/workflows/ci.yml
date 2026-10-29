@@ -10,12 +10,11 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   lint:
+    concurrency:
+      group: ci-${{ github.ref }}-lint-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: lint
     runs-on: ubuntu-26.04
     timeout-minutes: 10
@@ -44,6 +43,9 @@ jobs:
         run: pipx run yamllint==1.37.1 -s -c .yamllint.yml .github .yamllint.yml
 
   test:
+    concurrency:
+      group: ci-${{ github.ref }}-test-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: test (${{ matrix.runner }}, ${{ matrix.shell }}, ${{ matrix.toolset }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
@@ -125,10 +127,13 @@ jobs:
         run: sh bin/yakitsuke doctor
       - name: Run the suites under ${{ matrix.shell }}
         env:
-          YK_SHELLS: ${{ matrix.shell }}
+          YAKITSUKE_TEST_SHELLS: ${{ matrix.shell }}
         run: sh test/run-matrix.sh
 
   coverage:
+    concurrency:
+      group: ci-${{ github.ref }}-coverage-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: coverage (${{ matrix.runner }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
@@ -162,6 +167,9 @@ jobs:
           retention-days: 1
 
   coverage-gate:
+    concurrency:
+      group: ci-${{ github.ref }}-coverage-gate-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: coverage gate
     needs: coverage
     runs-on: ubuntu-26.04
@@ -180,6 +188,9 @@ jobs:
           results/coverage-Linux/.resultset.json results/coverage-macOS/.resultset.json
 
   release:
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
     name: release
     needs: [lint, test, coverage-gate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -213,6 +224,9 @@ jobs:
         run: echo "tag=$(git tag --points-at HEAD | head -n 1)" >> "${GITHUB_OUTPUT}"
 
   formula:
+    concurrency:
+      group: formula-${{ github.ref }}
+      cancel-in-progress: false
     name: formula
     needs: release
     if: needs.release.outputs.tag != ''
