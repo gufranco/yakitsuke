@@ -8,6 +8,7 @@ export LC_ALL
 : "${YK_PROG:=yakitsuke}"
 : "${YK_WIDTH:=80}"
 : "${YK_WORK:=}"
+: "${YK_STAGE:=}"
 : "${YK_FFMPEG:=}"
 : "${YK_FFPROBE:=}"
 : "${YK_ENCODER:=auto}"

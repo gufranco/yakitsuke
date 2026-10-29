@@ -48,10 +48,17 @@ yk_build_image() {
   yk_bi_label="$(yk_iso_label "${YK_TITLE}_$1")"
   yk_bi_album="$(yk_iso_label "${YK_TITLE}")"
   yk_write_xml "${yk_bi_xml}" "$2" "${yk_bi_label}" "${yk_bi_album}" "${YK_TOTAL}" "$1" "$5"
-  if ! vcdxbuild -c "$4" -b "$3" "${yk_bi_xml}" 2>"${YK_WORK}/vcdxbuild.log" >"${YK_WORK}/vcdxbuild.out"; then
+  YK_STAGE="$(mktemp -d "$(dirname -- "$3")/.yakitsuke.XXXXXX")" || return 2
+  yk_bi_bin="$(basename -- "$3")"
+  yk_bi_cue="$(basename -- "$4")"
+  if ! (cd -- "${YK_STAGE}" && vcdxbuild -c "${yk_bi_cue}" -b "${yk_bi_bin}" "${yk_bi_xml}") 2>"${YK_WORK}/vcdxbuild.log" >"${YK_WORK}/vcdxbuild.out"; then
     yk_error "vcdxbuild failed on disc $1."
     yk_detail "${YK_WORK}/vcdxbuild.log"
     return 2
   fi
-  yk_verify_image "$3"
+  yk_verify_image "${YK_STAGE}/${yk_bi_bin}" || return 1
+  mv -f "${YK_STAGE}/${yk_bi_bin}" "$3"
+  mv -f "${YK_STAGE}/${yk_bi_cue}" "$4"
+  rm -rf "${YK_STAGE}"
+  YK_STAGE=""
 }

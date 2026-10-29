@@ -35,6 +35,39 @@ print("%dx%d rate=%d vbv=%d" % (bits >> 52, (bits >> 40) & 0xFFF, (bits >> 32) &
 PY
 }
 
+@test "the cue sheet names its image without a folder, so the pair can move together" {
+  # Arrange
+  local clip="${BATS_FILE_TMPDIR}/pal.mp4"
+
+  # Act
+  run yk_test_run --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  grep -qF 'FILE "pal_disc1.bin" BINARY' "${OUT}/pal_disc1.cue"
+}
+
+@test "an image build that fails half way leaves no image and no staging folder behind" {
+  # Arrange
+  mkdir -p "${OUT}"
+  yk_test_shim vcdxbuild "while [ \"\$#\" -gt 0 ]; do
+  case \"\$1\" in
+  -b) printf partial >\"\$2\"; shift 2 ;;
+  *) shift ;;
+  esac
+done
+exit 1"
+
+  # Act
+  run yk_test_run --output-dir "${OUT}" "${BATS_FILE_TMPDIR}/pal.mp4"
+
+  # Assert
+  [[ "${status}" -ne 0 ]]
+  shopt -s nullglob dotglob
+  local left=("${OUT}"/*)
+  [[ "${#left[@]}" -eq 0 ]]
+}
+
 @test "a PAL source becomes a verified PAL Video CD image" {
   # Arrange
   local clip="${BATS_FILE_TMPDIR}/pal.mp4"

@@ -35,6 +35,8 @@ YK_SHARE="$(cd "${yk_self%/*}/../share" && pwd)" || exit 1
 . "${YK_LIB}/run.sh"
 
 yk_cleanup() {
+  [ -z "${YK_STAGE}" ] || rm -rf "${YK_STAGE}"
+  YK_STAGE=""
   [ -n "${YK_WORK}" ] && rm -rf "${YK_WORK}"
   YK_WORK=""
 }
