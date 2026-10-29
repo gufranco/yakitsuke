@@ -17,8 +17,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fresh:
+    name: decide whether this commit needs checking
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - name: Skip a scheduled run on a commit CI already passed
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run=true
+          if [ "${EVENT}" = schedule ]; then
+            passed="$(gh run list --repo "${REPO}" --workflow ci --branch main --status success \
+              --limit 20 --json headSha -q '.[].headSha')"
+            if grep -qxF "${SHA}" <<<"${passed}"; then
+              run=false
+            fi
+          fi
+          echo "run=${run}" >> "${GITHUB_OUTPUT}"
+
   lint:
     name: lint
+    needs: fresh
+    if: needs.fresh.outputs.run == 'true'
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
@@ -58,6 +91,8 @@ jobs:
 
   test:
     name: test (${{ matrix.runner }}, ${{ matrix.shell }}, ${{ matrix.toolset }})
+    needs: fresh
+    if: needs.fresh.outputs.run == 'true'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     strategy:
@@ -146,6 +181,8 @@ jobs:
 
   coverage:
     name: coverage (${{ matrix.runner }})
+    needs: fresh
+    if: needs.fresh.outputs.run == 'true'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     strategy:
