@@ -8,10 +8,10 @@ setup_file() {
   yk_test_media "${dir}/pal.mp4" 4 320x240 25
   yk_test_media "${dir}/film.mp4" 4 640x272 24000/1001 -vf "pad=640:360:0:44:black"
   yk_test_media "${dir}/long.mp4" 50 160x120 25
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "color=c=red:s=160x120:r=25:d=30" \
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "color=c=red:s=160x120:r=25:d=30" \
     -f lavfi -i "color=c=blue:s=160x120:r=25:d=30" -filter_complex "[0][1]concat=n=2:v=1:a=0" \
     -c:v libx264 -preset ultrafast -crf 18 -pix_fmt yuv420p "${dir}/cut.mp4"
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "testsrc2=size=320x240:rate=25:duration=3" \
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "testsrc2=size=320x240:rate=25:duration=3" \
     -c:v libx264 -preset ultrafast -crf 18 -pix_fmt yuv420p "${dir}/silent.mp4"
   yk_test_srt "${dir}/two.srt" 2
 }
@@ -306,7 +306,7 @@ exec \"\$REAL\" \"\$@\""
   yk_test_shim ffprobe "case \"\$*\" in *v:0*stream=width*disc1.mpg*) printf \"353\\n\"; exit 0 ;; esac
 exec \"\$REAL\" \"\$@\""
   mkdir -p "${WORK}/lone"
-  ln -s "${YK_TEST_FFMPEG}" "${WORK}/lone/ffmpeg"
+  ln -s "${YAKITSUKE_TEST_FFMPEG}" "${WORK}/lone/ffmpeg"
 
   # Act
   YAKITSUKE_FFMPEG="${WORK}/lone/ffmpeg" run yk_test_run --output-dir "${OUT}" "${BATS_FILE_TMPDIR}/pal.mp4"
@@ -374,12 +374,12 @@ head -c 11000000 /dev/zero >>\"\$4\""
   mkdir -p "${WORK}/tmp"
   yk_test_shim mpeg2enc "cat >/dev/null; sleep 2; exit 1"
   local -a shell_words
-  read -r -a shell_words <<<"${YK_SHELL:-sh}"
+  read -r -a shell_words <<<"${YAKITSUKE_TEST_SHELL:-sh}"
   local search
   search="$(yk_test_path)"
 
   # Act
-  TMPDIR="${WORK}/tmp" PATH="${search}" YAKITSUKE_FFMPEG="${YK_TEST_FFMPEG}" \
+  TMPDIR="${WORK}/tmp" PATH="${search}" YAKITSUKE_FFMPEG="${YAKITSUKE_TEST_FFMPEG}" \
     "${shell_words[@]}" "${REPO_DIR}/bin/yakitsuke" --output-dir "${OUT}" "${BATS_FILE_TMPDIR}/pal.mp4" >/dev/null 2>&1 &
   local pid="$!"
   local tries=0

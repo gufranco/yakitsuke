@@ -6,6 +6,7 @@ export LC_ALL
 : "${YK_LIB:=}"
 : "${YK_SHARE:=}"
 : "${YK_PROG:=yakitsuke}"
+: "${YK_WIDTH:=80}"
 : "${YK_WORK:=}"
 : "${YK_FFMPEG:=}"
 : "${YK_FFPROBE:=}"

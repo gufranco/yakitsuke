@@ -11,10 +11,10 @@ setup_file() {
   yk_test_media "${dir}/short.mp4" 1 640x480 25
   yk_test_media "${dir}/letterboxed.mp4" 6 1280x536 25 -vf "pad=1280:720:0:92:black"
   yk_test_media "${dir}/mono.mp4" 6 640x480 25 -vf "hue=s=0"
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "color=c=red:s=320x240:r=25:d=4" \
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "color=c=red:s=320x240:r=25:d=4" \
     -f lavfi -i "color=c=blue:s=320x240:r=25:d=4" -filter_complex "[0][1]concat=n=2:v=1:a=0" \
     -c:v libx264 -preset ultrafast -crf 18 -pix_fmt yuv420p "${dir}/cut.mp4"
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=3" \
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=3" \
     -c:a aac "${dir}/audio.m4a"
   printf 'not a video\n' >"${dir}/text.mp4"
 }
@@ -225,7 +225,7 @@ exec \"\$REAL\" \"\$@\""
   yk_test_shim ffprobe "case \"\$*\" in *format=duration*) printf \"N/A\\n\"; exit 0 ;; esac
 exec \"\$REAL\" \"\$@\""
   mkdir -p "${WORK}/lone"
-  ln -s "${YK_TEST_FFMPEG}" "${WORK}/lone/ffmpeg"
+  ln -s "${YAKITSUKE_TEST_FFMPEG}" "${WORK}/lone/ffmpeg"
   local clip="${BATS_FILE_TMPDIR}/progressive.mp4"
 
   # Act
@@ -251,7 +251,7 @@ exec \"\$REAL\" \"\$@\""
 @test "ffprobe is found on PATH when it is not next to ffmpeg" {
   # Arrange
   mkdir -p "${WORK}/lone"
-  ln -s "${YK_TEST_FFMPEG}" "${WORK}/lone/ffmpeg"
+  ln -s "${YAKITSUKE_TEST_FFMPEG}" "${WORK}/lone/ffmpeg"
   local expected
   expected="$(command -v ffprobe)"
 

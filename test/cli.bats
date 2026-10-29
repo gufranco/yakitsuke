@@ -19,7 +19,7 @@ teardown() {
 
 @test "help prints the usage page" {
   # Arrange
-  local first="yakitsuke - burn any video onto Video CD: VCD 2.0 BIN/CUE images, split across discs"
+  local first="yakitsuke - burn any video onto VCD 2.0 BIN/CUE images, split across discs"
 
   # Act
   run yk_test_run help
@@ -114,7 +114,7 @@ teardown() {
   answers="$(printf '%s\n%s\n' "${CLIP}" "${BATS_FILE_TMPDIR}/clip.srt")"
 
   # Act
-  YK_INTERACTIVE=1 run yk_test_run --dry-run <<<"${answers}"
+  YAKITSUKE_INTERACTIVE=1 run yk_test_run --dry-run <<<"${answers}"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -127,7 +127,7 @@ teardown() {
   local answers=$'\n\n\n'
 
   # Act
-  YK_INTERACTIVE=1 run yk_test_run <<<"${answers}"
+  YAKITSUKE_INTERACTIVE=1 run yk_test_run <<<"${answers}"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -139,7 +139,7 @@ teardown() {
   local empty=""
 
   # Act
-  YK_INTERACTIVE=1 run yk_test_run < <(printf '%s' "${empty}")
+  YAKITSUKE_INTERACTIVE=1 run yk_test_run < <(printf '%s' "${empty}")
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -152,7 +152,7 @@ teardown() {
   answers="$(printf '%s\n' "${CLIP}")"
 
   # Act
-  YK_INTERACTIVE=1 run yk_test_run < <(printf '%s' "${answers}")
+  YAKITSUKE_INTERACTIVE=1 run yk_test_run < <(printf '%s' "${answers}")
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -342,7 +342,7 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   local farm
   mkdir -p "${WORK}/ff"
-  ln -s "${YK_TEST_FFMPEG}" "${WORK}/ff/ffmpeg"
+  ln -s "${YAKITSUKE_TEST_FFMPEG}" "${WORK}/ff/ffmpeg"
   farm="$(yk_test_farm ffprobe)"
 
   # Act
@@ -359,7 +359,7 @@ exec \"\$REAL\" \"\$@\""
   farm="$(yk_test_farm mpeg2enc)"
 
   # Act
-  YAKITSUKE_FFMPEG="${YK_TEST_FFMPEG}" run yk_test_run_path "${farm}" --encoder mpeg2enc "${CLIP}"
+  YAKITSUKE_FFMPEG="${YAKITSUKE_TEST_FFMPEG}" run yk_test_run_path "${farm}" --encoder mpeg2enc "${CLIP}"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -372,7 +372,7 @@ exec \"\$REAL\" \"\$@\""
   farm="$(yk_test_farm vcdxbuild)"
 
   # Act
-  YAKITSUKE_FFMPEG="${YK_TEST_FFMPEG}" run yk_test_run_path "${farm}" "${CLIP}"
+  YAKITSUKE_FFMPEG="${YAKITSUKE_TEST_FFMPEG}" run yk_test_run_path "${farm}" "${CLIP}"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -382,7 +382,7 @@ exec \"\$REAL\" \"\$@\""
 @test "the tool runs by its bare name from inside its own folder" {
   # Arrange
   local -a shell_words
-  read -r -a shell_words <<<"${YK_SHELL:-sh}"
+  read -r -a shell_words <<<"${YAKITSUKE_TEST_SHELL:-sh}"
   cd "${REPO_DIR}/bin" || return 1
 
   # Act

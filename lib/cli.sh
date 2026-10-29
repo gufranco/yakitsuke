@@ -5,16 +5,16 @@
 
 yk_usage() {
   cat <<'USAGE'
-yakitsuke - burn any video onto Video CD: VCD 2.0 BIN/CUE images, split across discs
+yakitsuke - burn any video onto VCD 2.0 BIN/CUE images, split across discs
 
 usage:
-  yakitsuke                               ask for the video and subtitles, step by step
+  yakitsuke                  ask for the video and subtitles, step by step
   yakitsuke [options] <video> [subtitles]
-                                          encode the video into as many disc images as
-                                          it needs
-  yakitsuke doctor                        check the tools yakitsuke needs
-  yakitsuke version                       print the version
-  yakitsuke help                          print this page
+                             encode the video into as many disc images as it
+                             needs
+  yakitsuke doctor           check the tools yakitsuke needs
+  yakitsuke version          print the version
+  yakitsuke help             print this page
 
 disc:
   --cd74 | --cd80 | --cd90   74, 80 (default) or 90 minute media
@@ -43,7 +43,8 @@ sound:
 subtitles:
   --sub-track N              burn an embedded text subtitle stream
   --sub-color auto|white|yellow
-                             default auto: white, yellow for black-and-white film
+                             default auto: white, or yellow for a
+                             black-and-white film
   --sub-box auto|always|never
                              default auto: a box behind lines that sit on a
                              bright or busy picture, an outline elsewhere
@@ -77,7 +78,7 @@ USAGE
 }
 
 yk_cli_hint() {
-  printf "%s: %s. run '%s help' for usage.\n" "${YK_PROG}" "$1" "${YK_PROG}" >&2
+  yk_say 0 "${YK_PROG}: $1. run '${YK_PROG} help' for usage." >&2
 }
 
 yk_cli_version() {
@@ -105,7 +106,7 @@ yk_tool_flavor() {
   yk_tf_raw="$("$1" --version 2>&1 </dev/null)" || true
   yk_tf_text="$(printf '%s\n' "${yk_tf_raw}" | sed -n '1p')"
   yk_tf_version="$(yk_flavor_version "${yk_tf_text}")"
-  yk_tf_os="${YK_OS:-}"
+  yk_tf_os="${YAKITSUKE_OS:-}"
   [ -n "${yk_tf_os}" ] || yk_tf_os="$(uname -s)"
   case "${yk_tf_text}" in
   *uutils*) yk_tf_name=uutils ;;
@@ -174,7 +175,7 @@ yk_doctor() {
 }
 
 yk_interactive() {
-  [ "${YK_INTERACTIVE:-}" = 1 ] && return 0
+  [ "${YAKITSUKE_INTERACTIVE:-}" = 1 ] && return 0
   [ -t 0 ]
 }
 

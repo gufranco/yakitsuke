@@ -4,7 +4,7 @@
 source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 yk_flat() {
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "color=c=$2:s=$3:r=25:d=6" \
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "color=c=$2:s=$3:r=25:d=6" \
     -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=6" \
     -c:v libx264 -preset ultrafast -crf 18 -pix_fmt yuv420p -c:a aac -shortest "$1"
 }
@@ -16,10 +16,10 @@ setup_file() {
   yk_flat "${dir}/wide.mp4" 0xF0F0F0 1280x320
   yk_test_media "${dir}/mono.mp4" 6 640x480 25 -vf "hue=s=0"
   yk_test_srt "${dir}/two.srt" 2
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -i "${dir}/black.mp4" -i "${dir}/two.srt" \
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -i "${dir}/black.mp4" -i "${dir}/two.srt" \
     -map 0 -map 1 -c copy -c:s srt "${dir}/embedded.mkv"
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -i "${dir}/two.srt" "${dir}/styled.ass"
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -i "${dir}/black.mp4" -i "${dir}/styled.ass" \
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -i "${dir}/two.srt" "${dir}/styled.ass"
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -i "${dir}/black.mp4" -i "${dir}/styled.ass" \
     -map 0 -map 1 -c copy -c:s ass "${dir}/embedded-ass.mkv"
 }
 
@@ -228,7 +228,7 @@ yk_styles() {
   yk_test_shim ffprobe "case \"\$*\" in *s:0*codec_name*) printf \"hdmv_pgs_subtitle\\n\"; exit 0 ;; esac
 exec \"\$REAL\" \"\$@\""
   mkdir -p "${WORK}/lone"
-  ln -s "${YK_TEST_FFMPEG}" "${WORK}/lone/ffmpeg"
+  ln -s "${YAKITSUKE_TEST_FFMPEG}" "${WORK}/lone/ffmpeg"
 
   # Act
   YAKITSUKE_FFMPEG="${WORK}/lone/ffmpeg" run yk_test_call call_subs "${BATS_FILE_TMPDIR}/embedded.mkv" "" 0

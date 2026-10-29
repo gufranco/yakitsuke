@@ -20,7 +20,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 156 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
+One command, 163 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
 
 ---
 
@@ -182,7 +182,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script, test and completion, and mandoc on the man page |
-| `make test` | The 156 `bats` tests under the system `sh` |
+| `make test` | The 163 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make coverage` | bashcov line coverage, with the 100% gate CI enforces |
 

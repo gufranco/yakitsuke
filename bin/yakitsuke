@@ -1,6 +1,10 @@
 #!/bin/sh
 [ -n "${ZSH_VERSION:-}" ] && emulate sh
 
+for yk_inherited in $(env | sed -n 's/^\(YK_[A-Za-z0-9_]*\)=.*/\1/p'); do
+  unset "${yk_inherited}"
+done
+
 yk_self="$0"
 case "${yk_self}" in
   */*) ;;

@@ -28,7 +28,7 @@ wrapper="${wrapper_dir}/bashcov-shell"
 } >"${wrapper}"
 chmod 0755 "${wrapper}"
 
-YK_SHELL="${wrapper}" bats "${root}/test"
+YAKITSUKE_TEST_SHELL="${wrapper}" bats "${root}/test"
 
 cd "${root}"
 python3 scripts/coverage-gate.py '/(bin/yakitsuke|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json

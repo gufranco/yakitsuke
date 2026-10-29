@@ -20,7 +20,7 @@
 
 </div>
 
-コマンドは一つ、テストは 156 件、シェルモジュールは 11 個。POSIX システムと、操作する映像ツール以外に実行時の依存はありません。`yakitsuke` は「焼き付け」です。映画を CD に焼き、字幕を映像に焼き付けます。姉妹ツールの [kakikomi](https://github.com/gufranco/kakikomi) と [kiyome](https://github.com/gufranco/kiyome) はディスクの書き込みと消去を行います。
+コマンドは一つ、テストは 163 件、シェルモジュールは 11 個。POSIX システムと、操作する映像ツール以外に実行時の依存はありません。`yakitsuke` は「焼き付け」です。映画を CD に焼き、字幕を映像に焼き付けます。姉妹ツールの [kakikomi](https://github.com/gufranco/kakikomi) と [kiyome](https://github.com/gufranco/kiyome) はディスクの書き込みと消去を行います。
 
 ---
 
@@ -182,7 +182,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプト、テスト、補完に ShellCheck、man ページに mandoc |
-| `make test` | システムの `sh` で 156 件の `bats` テスト |
+| `make test` | システムの `sh` で 163 件の `bats` テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make coverage` | bashcov の行カバレッジと、CI が強制する 100% のゲート |
 

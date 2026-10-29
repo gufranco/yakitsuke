@@ -20,7 +20,7 @@ lint:
 	mandoc -T lint man/yakitsuke.1
 
 test:
-	YK_SHELLS=sh sh test/run-matrix.sh
+	YAKITSUKE_TEST_SHELLS=sh sh test/run-matrix.sh
 
 test-all:
 	sh test/run-matrix.sh

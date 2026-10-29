@@ -4,7 +4,7 @@
 source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup_file() {
-  "${YK_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "color=c=red:s=320x240:r=25:d=30" \
+  "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "color=c=red:s=320x240:r=25:d=30" \
     -f lavfi -i "color=c=blue:s=320x240:r=25:d=30" -filter_complex "[0][1]concat=n=2:v=1:a=0" \
     -c:v libx264 -preset ultrafast -crf 18 -pix_fmt yuv420p "${BATS_FILE_TMPDIR:?}/cut.mp4"
 }
@@ -129,7 +129,7 @@ setup_file() {
   farm="$(yk_test_farm mpeg2enc mplex)"
 
   # Act
-  PATH="${farm}" YAKITSUKE_FFMPEG="${YK_TEST_FFMPEG}" run sh "${YK_TESTS_DIR}/call.sh" yk_resolve_encoder
+  PATH="${farm}" YAKITSUKE_FFMPEG="${YAKITSUKE_TEST_FFMPEG}" run sh "${YAKITSUKE_TESTS_DIR}/call.sh" yk_resolve_encoder
 
   # Assert
   [[ "${output}" == "ffmpeg" ]]
@@ -279,11 +279,11 @@ on_terminal() {
 @test "progress redraws one line on a terminal" {
   # Arrange
   local -a shell_words
-  read -r -a shell_words <<<"${YK_SHELL:-sh}"
+  read -r -a shell_words <<<"${YAKITSUKE_TEST_SHELL:-sh}"
   progress_file 50000000 1.0x
 
   # Act
-  run on_terminal env PATH="${PATH}" "${shell_words[@]}" "${YK_TESTS_DIR}/call.sh" call_progress "${BATS_TEST_TMPDIR:?}" 100 final
+  run on_terminal env PATH="${PATH}" "${shell_words[@]}" "${YAKITSUKE_TESTS_DIR}/call.sh" call_progress "${BATS_TEST_TMPDIR:?}" 100 final
 
   # Assert
   [[ "${output}" == *"Disc 1 of 1, encoding 100%  1.0x  0m00s left"* ]]

@@ -20,7 +20,7 @@
 
 </div>
 
-一条命令，156 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
+一条命令，163 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
 
 ---
 
@@ -182,7 +182,7 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 | 命令 | 说明 |
 |:--------|:------------|
 | `make lint` | 对所有脚本、测试和补全运行 ShellCheck，用 mandoc 检查 man 手册 |
-| `make test` | 在系统 `sh` 下运行 156 个 `bats` 测试 |
+| `make test` | 在系统 `sh` 下运行 163 个 `bats` 测试 |
 | `make test-all` | 在所有已安装的 shell 下运行同样的测试 |
 | `make coverage` | bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
 
