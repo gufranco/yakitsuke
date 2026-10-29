@@ -6,10 +6,9 @@
 
 [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | 繁體中文 (香港)
 
-[![ci](https://github.com/gufranco/yakitsuke/actions/workflows/ci.yml/badge.svg)](https://github.com/gufranco/yakitsuke/actions/workflows/ci.yml)
-[![release](https://img.shields.io/github/v/release/gufranco/yakitsuke)](https://github.com/gufranco/yakitsuke/releases)
-[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![shell](https://img.shields.io/badge/shell-POSIX%20sh-lightgrey)](#portability)
+[![ci](https://img.shields.io/github/actions/workflow/status/gufranco/yakitsuke/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/gufranco/yakitsuke/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/gufranco/yakitsuke?style=flat-square&label=release)](https://github.com/gufranco/yakitsuke/releases/latest)
+[![license](https://img.shields.io/github/license/gufranco/yakitsuke?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
   <a href="#quick-start"><strong>快速開始</strong></a> |
