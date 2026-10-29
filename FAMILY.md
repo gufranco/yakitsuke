@@ -21,7 +21,9 @@ for member in fusho jimaku kakikomi kiyome shiwake yakitsuke; do
 done
 ```
 
-A rule that needs changing is changed in every member in the same task. The Homebrew tap that ships the members, [gufranco/homebrew-tap](https://github.com/gufranco/homebrew-tap), is not a member: it also carries tools and apps outside the family.
+A member that replaces a script in the owner's dotfiles, such as a zsh module, removes that script and its `source` line in the same task, and the dotfiles install the member instead: the Brewfile on macOS and `install.sh` on Linux.
+
+A rule the owner sets for any member is written here and applied to every member, so they keep one style and one standard of quality. A rule that needs changing is changed in every member in the same task. The Homebrew tap that ships the members, [gufranco/homebrew-tap](https://github.com/gufranco/homebrew-tap), is not a member: it also carries tools and apps outside the family.
 
 ## Commands
 
@@ -52,7 +54,8 @@ No colour, no emoji, no bracketed level tags.
 
 - Every setting is a long option. `--name value` and `--name=value` both work, and `--` ends the options.
 - A yes or no setting that is asked about interactively has both forms, such as `--verify` and `--no-verify`.
-- kakikomi and kiyome also read their original environment variables, such as `PASSES=3`, as the same settings. An option on the command line wins over the environment.
+- A setting may also come from an environment variable named after the tool, `<TOOL>_<SETTING>` in capitals, such as `KIYOME_PASSES=3` or `JIMAKU_LANGUAGE=pt-BR`. An option on the command line wins over the environment.
+- No member reads a bare name such as `PASSES`, and none takes its internal variables from the environment: a member either assigns each one outright, or its entry point clears every inherited variable with its internal prefix, such as `JM_`, before anything runs. Test-only switches follow the same rule, such as `JIMAKU_TERMINAL` and `JIMAKU_TEST_SHELLS`. `scripts/check-names.sh` fails lint on any other name.
 - Anything required and not given is asked for when stdin is a terminal: `Label [default]: ` on stderr, up to three tries for a required value.
 - Without a terminal the tool never waits on a prompt. It stops with the usage hint below.
 - A destructive step asks the person to type the device name: `Type disk4 to erase, or anything else to stop: `.
@@ -74,6 +77,7 @@ No colour, no emoji, no bracketed level tags.
 
 - A long step shows one progress line: `<Verb> NNN%  <rate>  XmYYs left`. On a terminal it redraws in place; otherwise it prints once per 10 percent.
 - The last line states the result in a full sentence, such as `Ejected. /dev/disk4 is safe to remove.`
+- Every line printed to a terminal fits in 80 columns, the default width of Terminal, iTerm2, xterm and GNOME Terminal. A longer message wraps between words, and a summary line continues under its value. A single word wider than 80 columns, such as a long path, is printed whole on its own line. Sent to a pipe or a file, a message stays on one line, so a script can read it. `doctor` is exempt: its rows are technical, so each stays on one line at any width. Tests check that `help` and `version` stay within 80 columns.
 
 ## Diagnostics
 
@@ -140,6 +144,18 @@ Every member runs on the five toolsets in common use, and CI runs the whole suit
 
 - `brew install gufranco/tap/<tool>` installs the tool, its man page and its completions.
 - `make install` does the same from a checkout, under `PREFIX`, `~/.local` by default.
+- A release updates the tap formula on its own: `formula.yml` asks the tap through a GitHub App, and the tap rewrites the formula's `url` and `sha256`. A version bump is never written into the tap by hand.
+
+## Layout and tooling
+
+Being adopted (as of 2026-10-28): fusho is moving to this layout, and `shfmt`, the single `scripts/coverage-gate.py` and the single `scripts/bashcov-run.rb` are being added to every member. Everything else here already holds in all six.
+
+- `bin/<tool>` is the entry point and sources `lib/*.sh`. There is no build step; `share/` holds data files only.
+- POSIX `sh` without `local`: every global carries the tool's internal prefix, such as `JM_`, and every function-scoped variable carries its function's prefix, such as `jm_fe_`. Variables are written `${name}`.
+- `shfmt -i 2` formats every script, and `make lint` fails on unformatted code.
+- Release tooling is pnpm, pinned through `packageManager` in `package.json`, running semantic-release. Dependabot updates the GitHub Actions and the release tooling weekly.
+- Tests live in `test/`: `helpers.bash` for the shared helpers, `call.sh` to call one function, and `run-matrix.sh`, which runs the suites under each shell named in `<TOOL>_TEST_SHELLS`. CI runs one job per shell and toolset.
+- These files are identical in every member apart from the tool's own name: `.editorconfig`, `.yamllint.yml`, `.github/actionlint.yaml`, `.github/dependabot.yml`, `.github/workflows/formula.yml`, `Gemfile`, `Gemfile.lock`, `.ruby-version`, `.simplecov`, `scripts/toolset.sh`, `scripts/coverage-gate.py`, `scripts/bashcov-run.rb` and `scripts/set-version.sh`.
 
 ## Quality
 
@@ -147,10 +163,14 @@ Every member runs on the five toolsets in common use, and CI runs the whole suit
 - On macOS, `bash` and `zsh` each mean two shells, and all four are tested: the system's `/bin/bash`, which is bash 3.2, and `/bin/zsh`, next to Homebrew's current builds in `$(brew --prefix)/bin`. Code that runs under bash uses nothing bash 3.2 lacks.
 - ShellCheck at zero errors and zero warnings.
 - `bats` tests that drive the real tools, injecting faults only through small wrappers on `PATH`.
-- 100 percent bashcov line coverage, gated in CI.
+- 100 percent bashcov line coverage, gated in CI. Every `case` branch runs a command, because bashcov never counts a branch that holds only `;;`.
+- Tests never write the member's version as a literal; they read it from `lib/core.sh`, so a release does not break them.
+- A wait loop polls from milliseconds upward, never with a fixed `sleep 1`. On a runner without `timeout`, a one-second poll per `dd` made two members ten times slower.
 - No comments in source, apart from tool directives and the `Arrange`, `Act`, `Assert` markers in tests.
 - Make targets: `help`, `lint`, `test`, `coverage`, `check`, `install`.
-- Conventional commits pushed to `main`; semantic-release cuts the version.
+- Conventional commits pushed straight to `main`; there are no pull requests. semantic-release cuts the version.
+- Before every push: `make lint`, the suites on both macOS builds, the suites on Ubuntu, and `make coverage`. CI repeats them; it does not replace them.
+- A newer push cancels the CI still running for an older commit, but never a release in progress. Each test job carries `concurrency: ci-${{ github.ref }}-<job>-${{ strategy.job-index }}`, with the job's own name written out, and `cancel-in-progress: true`; `github.job` is empty when a job's concurrency group is evaluated, so it would put every job in one group, and the `release` and `formula` jobs each have their own group with `cancel-in-progress: false`. A workflow-level concurrency block is not used, since cancelling the whole run would stop a release halfway.
 ---
 
 *Everything above this line is identical in every member. A member may add sections below it about its own state, and nothing may be added above it that the others do not also get.*
