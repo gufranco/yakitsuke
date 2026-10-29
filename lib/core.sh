@@ -3,7 +3,7 @@
 # shellcheck source=SCRIPTDIR/state.sh
 . "${YK_LIB:?}/state.sh"
 
-YAKITSUKE_VERSION="1.2.0"
+YAKITSUKE_VERSION="1.3.0"
 
 yk_version() {
   printf '%s %s\n' "${YK_PROG}" "${YAKITSUKE_VERSION}"

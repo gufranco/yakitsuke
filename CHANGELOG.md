@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.3.0](https://github.com/gufranco/yakitsuke/compare/v1.2.0...v1.3.0) (2026-10-29)
+
+
+### Features
+
+* fit terminal output in 80 columns ([c580a1e](https://github.com/gufranco/yakitsuke/commit/c580a1e2f7c9f4e9ad53ea770db4f462a282027a))
+
 # [1.2.0](https://github.com/gufranco/yakitsuke/compare/v1.1.0...v1.2.0) (2026-10-27)
 
 
