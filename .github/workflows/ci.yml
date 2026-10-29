@@ -10,16 +10,20 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
-    concurrency:
-      group: ci-${{ github.ref }}-lint-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: lint
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - name: Install ShellCheck
@@ -51,9 +55,6 @@ jobs:
         run: pipx run yamllint==1.37.1 -s -c .yamllint.yml .github .yamllint.yml
 
   test:
-    concurrency:
-      group: ci-${{ github.ref }}-test-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: test (${{ matrix.runner }}, ${{ matrix.shell }}, ${{ matrix.toolset }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
@@ -98,7 +99,10 @@ jobs:
             shell: /bin/sh
             toolset: uutils
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - name: Install shells and tools (Linux)
@@ -139,9 +143,6 @@ jobs:
         run: sh test/run-matrix.sh
 
   coverage:
-    concurrency:
-      group: ci-${{ github.ref }}-coverage-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: coverage (${{ matrix.runner }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
@@ -150,7 +151,10 @@ jobs:
       matrix:
         runner: [ubuntu-26.04, macos-26]
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
@@ -167,7 +171,7 @@ jobs:
         run: brew install --formula bash bats-core ffmpeg-full mjpegtools vcdimager
       - name: Measure line coverage
         run: sh scripts/coverage.sh 0
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: coverage-${{ runner.os }}
           path: coverage/.resultset.json
@@ -175,18 +179,18 @@ jobs:
           retention-days: 1
 
   coverage-gate:
-    concurrency:
-      group: ci-${{ github.ref }}-coverage-gate-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: coverage gate
     needs: coverage
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+      - uses: actions/download-artifact@v8.0.2
         with:
           pattern: coverage-*
           path: results
@@ -194,53 +198,3 @@ jobs:
         run: >-
           python3 scripts/coverage-gate.py '/(bin/yakitsuke|lib/[a-z]+\.sh)\Z' 100
           results/coverage-Linux/.resultset.json results/coverage-macOS/.resultset.json
-
-  release:
-    concurrency:
-      group: release-${{ github.ref }}
-      cancel-in-progress: false
-    name: release
-    needs: [lint, test, coverage-gate]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-26.04
-    timeout-minutes: 15
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    outputs:
-      tag: ${{ steps.published.outputs.tag }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
-        with:
-          node-version: lts/*
-      - name: Install release tooling
-        run: |
-          set -euo pipefail
-          corepack enable
-          pnpm install --frozen-lockfile
-      - name: Audit the release tooling
-        run: pnpm audit --audit-level high
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm exec semantic-release
-      - name: Record the tag a release just published
-        id: published
-        run: echo "tag=$(git tag --points-at HEAD | head -n 1)" >> "${GITHUB_OUTPUT}"
-
-  formula:
-    concurrency:
-      group: formula-${{ github.ref }}
-      cancel-in-progress: false
-    name: formula
-    needs: release
-    if: needs.release.outputs.tag != ''
-    uses: ./.github/workflows/formula.yml
-    with:
-      tag: ${{ needs.release.outputs.tag }}
-    secrets: inherit
