@@ -124,6 +124,13 @@ Encode one short sample from the middle.
 .TP
 .B \-\-dry\-run
 Print the plan and stop.
+.TP
+.B \-\-json
+Print the result as one JSON object on stdout, for scripts: the source, the
+output folder, the media capacity in sectors, and each disc's image, cue sheet
+and size, or with
+.B \-\-dry\-run
+its planned start and length.
 .PP
 Every option that takes a value also takes the form
 .IR \-\-name = value ,

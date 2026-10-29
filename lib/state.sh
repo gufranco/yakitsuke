@@ -9,6 +9,8 @@ export LC_ALL
 : "${YK_WIDTH:=80}"
 : "${YK_WORK:=}"
 : "${YK_STAGE:=}"
+: "${YK_JSON:=no}"
+: "${YK_JSON_DISCS:=}"
 : "${YK_FFMPEG:=}"
 : "${YK_FFPROBE:=}"
 : "${YK_ENCODER:=auto}"

@@ -47,6 +47,7 @@ _yakitsuke() {
     '(--force)--resume[keep discs that already exist]' \
     '--preview[encode one short sample]:seconds:' \
     '--dry-run[print the plan and stop]' \
+    '--json[print the result as one JSON object, for scripts]' \
     '*:file:_files'
 }
 

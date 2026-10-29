@@ -5,7 +5,7 @@ _yakitsuke() {
   local cur prev words options
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  options="--cd74 --cd80 --cd90 --disc-minutes --overlap --scene-snap --title --chapters --ntsc --pal --film --letterbox --crop --borders --deinterlace --denoise --sharpen --no-sharpen --no-color-convert --audio-track --normalize --sub-track --sub-color --sub-box --sub-offset --sub-style --encoder --output-dir --keep-mpeg --force --resume --preview --dry-run"
+  options="--cd74 --cd80 --cd90 --disc-minutes --overlap --scene-snap --title --chapters --ntsc --pal --film --letterbox --crop --borders --deinterlace --denoise --sharpen --no-sharpen --no-color-convert --audio-track --normalize --sub-track --sub-color --sub-box --sub-offset --sub-style --encoder --output-dir --keep-mpeg --force --resume --preview --dry-run --json"
 
   case "${prev}" in
   --borders) words="auto off" ;;

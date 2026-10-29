@@ -108,6 +108,7 @@ yk_run_plan() {
 }
 
 yk_run_report() {
+  [ "${YK_JSON}" = no ] || return 0
   printf '\n'
   yk_info "Source: $(basename -- "${YK_INPUT}")"
   yk_rr_aspect="$(awk -v d="${YK_DAR}" 'BEGIN { printf "%.3f", d }')"
@@ -146,11 +147,34 @@ yk_run_sub_summary() {
 yk_run_dry() {
   yk_rd_index=1
   while IFS=' ' read -r yk_rd_start yk_rd_span; do
-    yk_info "Disc ${yk_rd_index} of ${YK_TOTAL} would hold ${yk_rd_span}s from ${yk_rd_start}s: ${YK_OUTPUT_DIR}/${YK_STEM}_disc${yk_rd_index}.bin"
+    yk_rd_bin="${YK_OUTPUT_DIR}/${YK_STEM}_disc${yk_rd_index}.bin"
+    yk_info "Disc ${yk_rd_index} of ${YK_TOTAL} would hold ${yk_rd_span}s from ${yk_rd_start}s: ${yk_rd_bin}"
+    yk_rd_path="$(yk_json_string "${yk_rd_bin}")"
+    yk_json_add "{\"number\":${yk_rd_index},\"start\":${yk_rd_start},\"seconds\":${yk_rd_span},\"bin\":${yk_rd_path}}"
     yk_rd_index=$((yk_rd_index + 1))
   done <<EOF2
 ${YK_PLAN}
 EOF2
+}
+
+yk_json_add() {
+  YK_JSON_DISCS="${YK_JSON_DISCS}${YK_JSON_DISCS:+,}$1"
+}
+
+yk_json_disc() {
+  yk_jd_bin="$(yk_json_string "$2")"
+  yk_jd_cue="$(yk_json_string "$3")"
+  yk_json_add "{\"number\":$1,\"bin\":${yk_jd_bin},\"cue\":${yk_jd_cue},\"sectors\":${YK_IMAGE_SECTORS},\"kept\":$4}"
+}
+
+yk_json_report() {
+  [ "${YK_JSON}" = yes ] || return 0
+  yk_jr_source="$(yk_json_string "${YK_INPUT}")"
+  yk_jr_output="$(yk_json_string "${YK_OUTPUT_DIR}")"
+  yk_jr_dry=false
+  [ "${YK_DRY_RUN}" = no ] || yk_jr_dry=true
+  printf '{"source":%s,"output_dir":%s,"dry_run":%s,"capacity":%s,"discs":[%s]}\n' \
+    "${yk_jr_source}" "${yk_jr_output}" "${yk_jr_dry}" "${YK_CAPACITY}" "${YK_JSON_DISCS}"
 }
 
 yk_run_loudness() {
@@ -186,7 +210,10 @@ yk_run_disc() {
   yk_rn_cue="${YK_OUTPUT_DIR}/${YK_STEM}_disc$1.cue"
   yk_run_existing "$1" "${yk_rn_bin}" "${yk_rn_cue}"
   case "$?" in
-  0) return 0 ;;
+  0)
+    yk_json_disc "$1" "${yk_rn_bin}" "${yk_rn_cue}" true
+    return 0
+    ;;
   2) return 2 ;;
   *) ;;
   esac
@@ -202,6 +229,7 @@ yk_run_disc() {
   yk_build_image "$1" "${yk_rn_mpg}" "${yk_rn_bin}" "${yk_rn_cue}" "${yk_rn_entries}" || return "$?"
   [ "${YK_KEEP_MPEG}" = no ] || mv -f "${yk_rn_mpg}" "${YK_OUTPUT_DIR}/${YK_STEM}_disc$1.mpg"
   yk_info "Disc $1 of ${YK_TOTAL}: $(basename -- "${yk_rn_bin}"), ${YK_IMAGE_SECTORS} of ${YK_CAPACITY} sectors, $((YK_IMAGE_SECTORS * 100 / YK_CAPACITY))% full"
+  yk_json_disc "$1" "${yk_rn_bin}" "${yk_rn_cue}" false
 }
 
 yk_run_discs() {
@@ -222,6 +250,7 @@ EOF2
     return 1
   fi
   yk_info "Wrote ${YK_TOTAL} Video CD image(s) to ${YK_OUTPUT_DIR}."
+  yk_json_report
 }
 
 yk_run() {
@@ -234,6 +263,7 @@ yk_run() {
   yk_run_report
   if [ "${YK_DRY_RUN}" = yes ]; then
     yk_run_dry
+    yk_json_report
     return 0
   fi
   mkdir -p "${YK_WORK}/fonts" && cp -f "${YK_SHARE}/fonts/"*.ttf "${YK_WORK}/fonts/" || return 1

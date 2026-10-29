@@ -44,6 +44,7 @@ yk_args_flag() {
   force) YK_FORCE=yes ;;
   resume) YK_RESUME=yes ;;
   dry-run) YK_DRY_RUN=yes ;;
+  json) YK_JSON=yes ;;
   *) return 1 ;;
   esac
 }

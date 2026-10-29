@@ -60,6 +60,7 @@ encoder and output:
   --resume                   keep discs that already exist and verify
   --preview SECONDS          encode one short sample from the middle
   --dry-run                  print the plan and stop
+  --json                     print the result as one JSON object, for scripts
 
 environment:
   YAKITSUKE_FFMPEG           ffmpeg to use; otherwise the first build on PATH
