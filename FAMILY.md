@@ -154,7 +154,7 @@ Being adopted (as of 2026-10-28): fusho is moving to this layout, and `shfmt`, t
 - POSIX `sh` without `local`: every global carries the tool's internal prefix, such as `JM_`, and every function-scoped variable carries its function's prefix, such as `jm_fe_`. Variables are written `${name}`.
 - `shfmt -i 2` formats every script, and `make lint` fails on unformatted code.
 - Release tooling is pnpm, pinned through `packageManager` in `package.json`, running semantic-release. The release job installs it with `pnpm install --frozen-lockfile` and stops on `pnpm audit --audit-level high`. Dependabot updates the GitHub Actions and the release tooling weekly.
-- Every action in a workflow is pinned to a full commit SHA, with its version in a trailing comment.
+- `actions/*` and `github/*` actions are referenced by version tag, such as `actions/checkout@v7.0.1`; every other action is pinned to a full commit SHA with its version in a trailing comment.
 - Tests live in `test/`: `helpers.bash` for the shared helpers, `call.sh` to call one function, and `run-matrix.sh`, which runs the suites under each shell named in `<TOOL>_TEST_SHELLS`. CI runs one job per shell and toolset.
 - These files are identical in every member apart from the tool's own name: `.editorconfig`, `.yamllint.yml`, `.github/actionlint.yaml`, `.github/dependabot.yml`, `.github/workflows/formula.yml`, `Gemfile`, `Gemfile.lock`, `.ruby-version`, `.simplecov`, `scripts/toolset.sh`, `scripts/coverage-gate.py`, `scripts/bashcov-run.rb` and `scripts/set-version.sh`.
 
@@ -171,7 +171,8 @@ Being adopted (as of 2026-10-28): fusho is moving to this layout, and `shfmt`, t
 - Make targets: `help`, `fmt`, `lint`, `test`, `coverage`, `check`, `install`. `make lint` runs `shfmt -i 2 -d` first; CI installs shfmt v3.14.1 from its release binary, checked against its SHA-256.
 - Conventional commits pushed straight to `main`; there are no pull requests. semantic-release cuts the version.
 - Before every push: `make lint`, the suites on both macOS builds, the suites on Ubuntu, and `make coverage`. CI repeats them; it does not replace them.
-- A newer push cancels the CI still running for an older commit, but never a release in progress. Each test job carries `concurrency: ci-${{ github.ref }}-<job>-${{ strategy.job-index }}`, with the job's own name written out, and `cancel-in-progress: true`; `github.job` is empty when a job's concurrency group is evaluated, so it would put every job in one group, and the `release` and `formula` jobs each have their own group with `cancel-in-progress: false`. A workflow-level concurrency block is not used, since cancelling the whole run would stop a release halfway.
+- CI follows the owner's workflow defaults. `ci.yml` has one top-level concurrency group with `cancel-in-progress: true`, so a newer push cancels the run for an older commit. The release lives in `release.yml`, started by `workflow_run` when `ci` succeeds on a push to `main`, in a group that never cancels, so no push can stop a release halfway; it asks the tap to bump through `gh workflow run formula.yml`, since a `workflow_run` workflow cannot call a reusable workflow. `step-security/harden-runner` is the first step of every job.
+- macOS runners are an approved exception to the Ubuntu-only default (owner, 2026-10-29): the native and Homebrew toolsets and the macOS disk paths can only be tested there.
 ---
 
 *Everything above this line is identical in every member. A member may add sections below it about its own state, and nothing may be added above it that the others do not also get.*
