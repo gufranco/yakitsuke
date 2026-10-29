@@ -215,6 +215,8 @@ jobs:
           set -euo pipefail
           corepack enable
           pnpm install --frozen-lockfile
+      - name: Audit the release tooling
+        run: pnpm audit --audit-level high
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

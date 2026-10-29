@@ -153,7 +153,8 @@ Being adopted (as of 2026-10-28): fusho is moving to this layout, and `shfmt`, t
 - `bin/<tool>` is the entry point and sources `lib/*.sh`. There is no build step; `share/` holds data files only.
 - POSIX `sh` without `local`: every global carries the tool's internal prefix, such as `JM_`, and every function-scoped variable carries its function's prefix, such as `jm_fe_`. Variables are written `${name}`.
 - `shfmt -i 2` formats every script, and `make lint` fails on unformatted code.
-- Release tooling is pnpm, pinned through `packageManager` in `package.json`, running semantic-release. Dependabot updates the GitHub Actions and the release tooling weekly.
+- Release tooling is pnpm, pinned through `packageManager` in `package.json`, running semantic-release. The release job installs it with `pnpm install --frozen-lockfile` and stops on `pnpm audit --audit-level high`. Dependabot updates the GitHub Actions and the release tooling weekly.
+- Every action in a workflow is pinned to a full commit SHA, with its version in a trailing comment.
 - Tests live in `test/`: `helpers.bash` for the shared helpers, `call.sh` to call one function, and `run-matrix.sh`, which runs the suites under each shell named in `<TOOL>_TEST_SHELLS`. CI runs one job per shell and toolset.
 - These files are identical in every member apart from the tool's own name: `.editorconfig`, `.yamllint.yml`, `.github/actionlint.yaml`, `.github/dependabot.yml`, `.github/workflows/formula.yml`, `Gemfile`, `Gemfile.lock`, `.ruby-version`, `.simplecov`, `scripts/toolset.sh`, `scripts/coverage-gate.py`, `scripts/bashcov-run.rb` and `scripts/set-version.sh`.
 
