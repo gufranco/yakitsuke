@@ -107,3 +107,18 @@ yk_test_frame_luma() {
     -vf "crop=$3,signalstats,metadata=print:key=lavfi.signalstats.YMAX" -f null - 2>&1)"
   sed -n '/YMAX=/{s/.*YMAX=\([0-9]*\).*/\1/p;q;}' <<<"${stats}"
 }
+
+yk_test_matches_golden() {
+  local name="$1"
+  local actual="$2"
+  local os golden normalized
+  os="$(uname -s)"
+  golden="${YAKITSUKE_TESTS_DIR}/golden/${name}.${os}.txt"
+  normalized="${actual//"${WORK}"/WORK}"
+  normalized="${normalized//"${CLIPS}"/CLIPS}"
+  if [[ "${YAKITSUKE_TEST_RECORD:-}" == "1" ]]; then
+    mkdir -p "${YAKITSUKE_TESTS_DIR}/golden"
+    printf '%s\n' "${normalized}" >"${golden}"
+  fi
+  diff <(printf '%s\n' "${normalized}") "${golden}"
+}

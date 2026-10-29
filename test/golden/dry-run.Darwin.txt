@@ -1,0 +1,14 @@
+Measuring the picture under each subtitle.
+
+Source: pal.mp4
+        320x240, 1.333 display aspect, 0:00:04
+Target: PAL Video CD, 352x288 at 25 fps
+        picture 352x288 at +0+0, letterbox
+        deinterlace off, denoise off, sharpen yes
+        audio track 0
+        audio 0: aac, 1ch, und
+        subtitles burned in: 2 lines, 2 on a box, 0 outlined
+Media:  80 min, 360000 sectors, 4784.000s usable per disc
+Plan:   1 disc(s), 30s overlap, mpeg2enc
+
+Disc 1 of 1 would hold 4.000s from 0.000s: WORK/out/pal_disc1.bin

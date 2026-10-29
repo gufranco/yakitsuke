@@ -1,0 +1,13 @@
+
+Source: long.mp4
+        160x120, 1.333 display aspect, 0:00:50
+Target: PAL Video CD, 352x288 at 25 fps
+        picture 352x288 at +0+0, letterbox
+        deinterlace off, denoise off, sharpen yes
+        audio track 0
+        audio 0: aac, 1ch, und
+Media:  1 min, 4500 sectors, 44.000s usable per disc
+Plan:   2 disc(s), 5s overlap, mpeg2enc
+
+Disc 1 of 2 would hold 27.500s from 0.000s: WORK/out/long_disc1.bin
+Disc 2 of 2 would hold 27.500s from 22.500s: WORK/out/long_disc2.bin
