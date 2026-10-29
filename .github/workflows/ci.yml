@@ -32,6 +32,14 @@ jobs:
           sudo install -m 755 shellcheck /usr/local/bin/shellcheck
         env:
           GH_TOKEN: ${{ github.token }}
+      - name: Install shfmt
+        run: |
+          set -euo pipefail
+          gh release download v3.14.1 --repo mvdan/sh --pattern 'shfmt_v3.14.1_linux_amd64' --output shfmt
+          echo "76e77641faa025814b77f153b29796b8e6fa2fca03e0c76a691608b86c7ea7bf  shfmt" | sha256sum -c -
+          sudo install -m 755 shfmt /usr/local/bin/shfmt
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Install mandoc
         run: |
           set -euo pipefail

@@ -168,7 +168,7 @@ Being adopted (as of 2026-10-28): fusho is moving to this layout, and `shfmt`, t
 - Tests never write the member's version as a literal; they read it from `lib/core.sh`, so a release does not break them.
 - A wait loop polls from milliseconds upward, never with a fixed `sleep 1`. On a runner without `timeout`, a one-second poll per `dd` made two members ten times slower.
 - No comments in source, apart from tool directives and the `Arrange`, `Act`, `Assert` markers in tests.
-- Make targets: `help`, `lint`, `test`, `coverage`, `check`, `install`.
+- Make targets: `help`, `fmt`, `lint`, `test`, `coverage`, `check`, `install`. `make lint` runs `shfmt -i 2 -d` first; CI installs shfmt v3.14.1 from its release binary, checked against its SHA-256.
 - Conventional commits pushed straight to `main`; there are no pull requests. semantic-release cuts the version.
 - Before every push: `make lint`, the suites on both macOS builds, the suites on Ubuntu, and `make coverage`. CI repeats them; it does not replace them.
 - A newer push cancels the CI still running for an older commit, but never a release in progress. Each test job carries `concurrency: ci-${{ github.ref }}-<job>-${{ strategy.job-index }}`, with the job's own name written out, and `cancel-in-progress: true`; `github.job` is empty when a job's concurrency group is evaluated, so it would put every job in one group, and the `release` and `formula` jobs each have their own group with `cancel-in-progress: false`. A workflow-level concurrency block is not used, since cancelling the whole run would stop a release halfway.
