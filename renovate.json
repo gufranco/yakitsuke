@@ -3,7 +3,7 @@
   "extends": ["config:recommended"],
   "enabledManagers": ["github-actions", "bundler", "ruby-version"],
   "dependencyDashboard": false,
-  "schedule": ["before 6am on monday"],
+  "schedule": ["* 5,13,21 * * *"],
   "timezone": "Etc/UTC",
   "labels": ["dependencies"],
   "automerge": true,
