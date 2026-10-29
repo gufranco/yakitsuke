@@ -7,8 +7,8 @@ done
 
 yk_self="$0"
 case "${yk_self}" in
-  */*) ;;
-  *) yk_self="$(command -v -- "${yk_self}")" ;;
+*/*) ;;
+*) yk_self="$(command -v -- "${yk_self}")" ;;
 esac
 YK_LIB="$(cd "${yk_self%/*}/../lib" && pwd)" || exit 1
 YK_SHARE="$(cd "${yk_self%/*}/../share" && pwd)" || exit 1
@@ -67,10 +67,10 @@ yk_start() {
 
 yk_main() {
   case "${1:-}" in
-    help | -h | --help) yk_usage ;;
-    version | -V | --version) yk_cli_version ;;
-    doctor) yk_doctor ;;
-    *) yk_start "$@" ;;
+  help | -h | --help) yk_usage ;;
+  version | -V | --version) yk_cli_version ;;
+  doctor) yk_doctor ;;
+  *) yk_start "$@" ;;
   esac
 }
 

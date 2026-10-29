@@ -390,8 +390,8 @@ head -c 11000000 /dev/zero >>\"\$4\""
   local target
   for target in $(pgrep -f "bin/yakitsuke --output-dir ${OUT}"); do
     case "$(ps -o comm= -p "${target}")" in
-      *sh) kill -TERM "${target}" ;;
-      *) ;;
+    *sh) kill -TERM "${target}" ;;
+    *) ;;
     esac
   done
   wait "${pid}" && status=0 || status=$?

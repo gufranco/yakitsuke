@@ -88,7 +88,6 @@ yk_calc() {
   awk "BEGIN { printf \"%.3f\\n\", $1 }"
 }
 
-
 yk_greater() {
   awk -v a="$1" -v b="$2" 'BEGIN { exit !(a + 0 > b + 0) }'
 }

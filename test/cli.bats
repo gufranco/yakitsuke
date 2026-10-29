@@ -408,7 +408,6 @@ exec \"\$REAL\" \"\$@\""
   [[ "${output}" == *"Media:  80 min, 360000 sectors"* ]]
 }
 
-
 help_options() {
   local page
   page="$(yk_test_run help)" || return 1
