@@ -117,6 +117,7 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 | `--sub-box auto\|always\|never` | 字幕の背景ボックス |
 | `--sub-track N`、`--sub-offset SECONDS` | 内蔵トラックの焼き付け、全行のタイミング移動 |
 | `--preview SECONDS`、`--dry-run` | 短いサンプルだけをエンコード、または計画だけを表示 |
+| `--json` | 結果を1つのJSONオブジェクトとして出力します（スクリプト向け） |
 | `--resume`、`--force` | 完成済みのディスクを残すか、上書きするか |
 
 ```bash
@@ -180,12 +181,14 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 
 | コマンド | 説明 |
 |:--------|:------------|
-| `make lint` | すべてのスクリプト、テスト、補完に ShellCheck、man ページに mandoc |
-| `make test` | システムの `sh` で 163 件の `bats` テスト |
-| `make test-all` | インストール済みのすべてのシェルで同じテスト |
-| `make coverage` | bashcov の行カバレッジと、CI が強制する 100% のゲート |
+| `make fmt` | すべてのスクリプトを shfmt で整形 |
+| `make lint` | shfmt、すべてのスクリプト、テスト、補完に ShellCheck、man ページに mandoc |
+| `make test` | システムの `sh` で `bats` テスト |
+| `make test-all` | すべてのシェルで同じテスト。macOS では bash と zsh の両方の版を含みます |
+| `make test-linux` | Ubuntu コンテナで同じテスト |
+| `make coverage` | この Mac と Ubuntu コンテナでの bashcov の行カバレッジを合算し、CI が強制する 100% のゲート |
 
-テストは ffmpeg、`mpeg2enc`、`vcdimager` で実際のクリップをエンコードします。故障だけを `PATH` 上の小さなラッパーで注入します。`main` への push ごとに semantic-release が動き、`feat` か `fix` のコミットでリリースを公開し、[`lib/core.sh`](lib/core.sh) の `YAKITSUKE_VERSION` と CHANGELOG を更新し、Homebrew の formula を更新します。
+テストは ffmpeg、`mpeg2enc`、`vcdimager` で実際のクリップをエンコードします。故障だけを `PATH` 上の小さなラッパーで注入します。`main` への push で CI が通ると semantic-release が動き、`feat` か `fix` のコミットでリリースを公開し、[`lib/core.sh`](lib/core.sh) の `YAKITSUKE_VERSION` と CHANGELOG を更新し、Homebrew の formula を更新します。
 
 ## ライセンス
 

@@ -117,6 +117,7 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 | `--sub-box auto\|always\|never` | 字幕背景框 |
 | `--sub-track N`、`--sub-offset SECONDS` | 烧录内嵌字幕轨，整体平移所有字幕 |
 | `--preview SECONDS`、`--dry-run` | 只编码一小段样本，或只打印计划 |
+| `--json` | 以一个 JSON 对象输出结果，供脚本使用 |
 | `--resume`、`--force` | 保留已完成的光盘，或覆盖它们 |
 
 ```bash
@@ -180,12 +181,14 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 
 | 命令 | 说明 |
 |:--------|:------------|
-| `make lint` | 对所有脚本、测试和补全运行 ShellCheck，用 mandoc 检查 man 手册 |
-| `make test` | 在系统 `sh` 下运行 163 个 `bats` 测试 |
-| `make test-all` | 在所有已安装的 shell 下运行同样的测试 |
-| `make coverage` | bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
+| `make fmt` | 用 shfmt 格式化所有脚本 |
+| `make lint` | 运行 shfmt，对所有脚本、测试和补全运行 ShellCheck，用 mandoc 检查 man 手册 |
+| `make test` | 在系统 `sh` 下运行 `bats` 测试 |
+| `make test-all` | 在每种 shell 下运行同样的测试，macOS 上包括 bash 和 zsh 的两个版本 |
+| `make test-linux` | 在 Ubuntu 容器中运行同样的测试 |
+| `make coverage` | 合并这台 Mac 与 Ubuntu 容器中的 bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
 
-测试用 ffmpeg、`mpeg2enc` 和 `vcdimager` 编码真实片段，只有故障通过 `PATH` 上的小包装程序注入。每次推送到 `main` 都会运行 semantic-release：`feat` 或 `fix` 提交会发布新版本，更新 [`lib/core.sh`](lib/core.sh) 里的 `YAKITSUKE_VERSION` 和 CHANGELOG，并更新 Homebrew formula。
+测试用 ffmpeg、`mpeg2enc` 和 `vcdimager` 编码真实片段，只有故障通过 `PATH` 上的小包装程序注入。推送到 `main` 且 CI 通过后会运行 semantic-release：`feat` 或 `fix` 提交会发布新版本，更新 [`lib/core.sh`](lib/core.sh) 里的 `YAKITSUKE_VERSION` 和 CHANGELOG，并更新 Homebrew formula。
 
 ## 许可证
 

@@ -136,17 +136,20 @@ The flavor is `gnu`, `uutils`, `bsd`, `mawk`, `busybox` or `unknown`. It comes f
 
 ## Toolsets
 
-Every member runs on the five toolsets in common use, and CI runs the whole suite on each:
+Every tool that can be installed in more than one version on a supported system is tested in every one of them. Every member runs on the seven toolsets below, and CI runs the whole suite on each:
 
 | Toolset | What it is |
 |:--------|:-----------|
 | Linux, uutils | Ubuntu's default since 25.10: uutils coreutils, with GNU sed and mawk |
 | Linux, GNU | GNU coreutils and gawk |
+| Linux, BusyBox | BusyBox's applets first on `PATH`: coreutils, awk, sed, grep, find and the rest |
+| Linux, Homebrew | Homebrew on Linux, with its current build of every tool the member calls first on `PATH` |
 | macOS, native | Everything macOS ships, first on `PATH`: its BSD tools, bash 3.2, zsh, perl, openssl and the rest |
 | macOS, Homebrew | Homebrew's current build of every tool macOS also ships, first on `PATH`: coreutils, findutils, gnu-sed, gawk, grep, diffutils, bash, zsh, and each member's own, such as openssl@3, curl, perl, libarchive, gzip, bzip2, libiconv or file-formula |
 | macOS, uutils | Homebrew's uutils-coreutils, uutils-diffutils and uutils-findutils, first on `PATH` |
 
-- A script uses only options all five accept. Where they differ, the code handles each one and a test covers it. A change that passes on one toolset only is not done.
+- A member's own dependencies are tested in every build those routes offer, such as `ffmpeg` and `ffmpeg-full`, `subliminal` from apt and its current release, or `age` from apt and from Homebrew. A dependency that gains a new route or build gets its leg in the same change.
+- A script uses only options all seven accept. Where they differ, the code handles each one and a test covers it. A change that passes on one toolset only is not done.
 - Any tool macOS ships that Homebrew also builds in a newer version is tested in both: the macOS native toolset runs the system's copy, and the macOS Homebrew toolset runs Homebrew's. A member that starts calling such a tool adds its formula to the Homebrew leg in CI.
 - `scripts/toolset.sh native`, `homebrew`, `gnu` or `uutils` prints the directories that put a toolset first on `PATH`. CI uses it, and a report is reproduced by putting the reporter's toolset first: `export PATH="$(sh scripts/toolset.sh gnu | paste -sd: -):$PATH"`.
 
@@ -183,7 +186,7 @@ Every member runs on the five toolsets in common use, and CI runs the whole suit
 - Release tooling is pnpm, pinned through `packageManager` in `package.json`, running semantic-release. The release job installs it with `pnpm install --frozen-lockfile` and stops on `pnpm audit --audit-level high`.
 - Dependabot updates the GitHub Actions and the release tooling, and Renovate updates the runner labels, `.ruby-version` and the Gemfile, so each update arrives once. Both look for updates three times a day, at 05:00, 13:00 and 21:00 UTC. Every bot pull request merges itself once CI passes: Renovate merges its own, and `dependabot-merge.yml` squash-merges Dependabot's at the commit CI verified, with a fixed commit body so upstream release notes never trigger a release. None is merged by hand.
 - `actions/*` and `github/*` actions are referenced by version tag, such as `actions/checkout@v7.0.1`; every other action is pinned to a full commit SHA with its version in a trailing comment.
-- These files are identical in every member apart from the tool's own name: `FAMILY.md`, `.editorconfig`, `.yamllint.yml`, `.github/actionlint.yaml`, `.github/dependabot.yml`, `renovate.json`, `.github/workflows/release.yml`, `.github/workflows/formula.yml`, `.github/workflows/dependabot-merge.yml`, `Gemfile`, `Gemfile.lock`, `.ruby-version`, `.simplecov`, `scripts/toolset.sh`, `scripts/coverage-gate.py`, `scripts/bashcov-run.rb` and `scripts/set-version.sh`.
+- These files are identical in every member apart from the tool's own name: `FAMILY.md`, `.editorconfig`, `.yamllint.yml`, `.github/actionlint.yaml`, `.github/dependabot.yml`, `renovate.json`, `.github/workflows/release.yml`, `.github/workflows/formula.yml`, `.github/workflows/dependabot-merge.yml`, `Gemfile`, `Gemfile.lock`, `.ruby-version`, `.simplecov`, `scripts/toolset.sh`, `scripts/coverage-gate.py`, `scripts/bashcov-run.rb`, `scripts/linux-coverage.sh` and `scripts/set-version.sh`.
 
 ## Tests
 
@@ -219,5 +222,5 @@ Every member runs on the five toolsets in common use, and CI runs the whole suit
 - Conventional commits pushed straight to `main`; there are no pull requests from people. semantic-release cuts the version: a `feat` or `fix` commit publishes a release, stamps `<TOOL>_VERSION` in `lib/core.sh` through `scripts/set-version.sh` and updates `CHANGELOG.md`.
 - Before every push: `make lint`, `make test-all` on macOS, `make test-linux` and `make coverage`. CI repeats them; it does not replace them.
 - Any push or merge to `main` is safe at any moment, and nobody times or watches one. Push as soon as the local gates pass, never waiting for a CI or release run. The newest green push releases every commit since the last tag, and semantic-release publishes nothing from a commit `main` has already moved past.
-- CI follows the owner's workflow defaults. `ci.yml` runs on every push to `main`, every pull request and at 05:23, 13:23 and 21:23 UTC, which also covers Dependabot merges, since a merge made with `GITHUB_TOKEN` starts no workflow. It has one top-level concurrency group per event and ref with `cancel-in-progress: true`, so a newer push cancels the run for an older commit while a scheduled run never cancels a push's run, which is the one that releases. The release lives in `release.yml`, started by `workflow_run` when `ci` succeeds on a push to `main`, in a group that never cancels, so no push can stop a release halfway; it asks the tap to bump through `gh workflow run formula.yml`, since a `workflow_run` workflow cannot call a reusable workflow. `step-security/harden-runner` is the first step of every job.
+- CI follows the owner's workflow defaults. `ci.yml` runs on every push to `main`, every pull request and at 05:23, 13:23 and 21:23 UTC, which also covers Dependabot merges, since a merge made with `GITHUB_TOKEN` starts no workflow. Its first job, `fresh`, lets a scheduled run go on only when CI has not already passed on that commit, and every other job needs it, so the schedule spends runners only after a Dependabot merge. GitHub's free plan runs at most five macOS jobs at a time, and each member's run holds at least seven. It has one top-level concurrency group per event and ref with `cancel-in-progress: true`, so a newer push cancels the run for an older commit while a scheduled run never cancels a push's run, which is the one that releases. The release lives in `release.yml`, started by `workflow_run` when `ci` succeeds on a push to `main`, in a group that never cancels, so no push can stop a release halfway; it asks the tap to bump through `gh workflow run formula.yml`, since a `workflow_run` workflow cannot call a reusable workflow. `step-security/harden-runner` is the first step of every job.
 - macOS runners are an approved exception to the Ubuntu-only default (owner, 2026-10-29): the native and Homebrew toolsets and the macOS disk paths can only be tested there.
