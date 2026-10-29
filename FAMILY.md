@@ -1,6 +1,6 @@
-# The family standard
+# kodougu 小道具: the family standard
 
-The tools in the table below are one family of command-line tools. They look, read and behave alike, so a person who knows one already knows how to drive the others. This file is the contract they share.
+The tools in the table below are one family of command-line tools, called kodougu (小道具), Japanese for the small tools of a craft. Each one is named for a single task in Japanese, and they look, read and behave alike, so a person who knows one already knows how to drive the others. This file is the contract they share.
 
 | Member | What it does | Repository |
 |:-------|:-------------|:-----------|
