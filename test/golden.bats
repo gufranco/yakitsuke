@@ -20,6 +20,7 @@ teardown() {
   rm -rf "${WORK}"
 }
 
+# bats test_tags=libass
 @test "a dry run prints the same transcript as the recorded one" {
   # Arrange
   local clip="${CLIPS}/pal.mp4"

@@ -71,12 +71,8 @@ linux_busybox_farm() {
   printf '%s\n' "${farm}"
 }
 
-linux_homebrew() {
-  printf '%s\n' "${prefix}/bin" "${prefix}/sbin"
-}
-
 prefix=""
-if [ "${os}" = Darwin ] || [ "${toolset}" = homebrew ]; then
+if [ "${os}" = Darwin ]; then
   prefix="$(brew --prefix)"
 fi
 
@@ -84,7 +80,6 @@ case "${toolset}:${os}" in
 native:Darwin) darwin_system ;;
 native:*) ;;
 homebrew:Darwin | gnu:Darwin) darwin_homebrew ;;
-homebrew:Linux) linux_homebrew ;;
 busybox:Linux) linux_busybox_farm ;;
 gnu:Linux) linux_gnu_farm ;;
 uutils:Darwin) darwin_dirs uutils-coreutils uutils-diffutils uutils-findutils ;;

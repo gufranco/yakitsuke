@@ -39,7 +39,7 @@ jobs:
           AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
           set -euo pipefail
-          legs='[{"shell":"/bin/sh","toolset":"native","coverage":false},{"shell":"/bin/bash","toolset":"native","coverage":false},{"shell":"/bin/zsh","toolset":"native","coverage":false},{"shell":"/opt/homebrew/bin/bash","toolset":"homebrew","coverage":true},{"shell":"/opt/homebrew/bin/zsh","toolset":"homebrew","coverage":false},{"shell":"/bin/sh","toolset":"uutils","coverage":false}]'
+          legs='[{"shell":"/bin/sh","toolset":"native","coverage":false},{"shell":"/bin/bash","toolset":"native","coverage":false},{"shell":"/bin/zsh","toolset":"native","coverage":false},{"shell":"/opt/homebrew/bin/bash","toolset":"homebrew","coverage":true},{"shell":"/opt/homebrew/bin/zsh","toolset":"homebrew","coverage":false},{"shell":"/bin/sh","toolset":"uutils","coverage":false},{"shell":"/bin/sh","toolset":"native","coverage":false,"ffmpeg":"ffmpeg","tags":"!libass"}]'
           case "${EVENT}:${AUTHOR}" in
           'pull_request:dependabot[bot]' | 'pull_request:renovate[bot]')
             legs='[{"shell":"/opt/homebrew/bin/bash","toolset":"homebrew","coverage":true}]'
@@ -113,15 +113,6 @@ jobs:
           - shell: dash
             toolset: busybox
             coverage: false
-          - shell: /home/linuxbrew/.linuxbrew/bin/bash
-            toolset: homebrew
-            coverage: false
-          - shell: /home/linuxbrew/.linuxbrew/bin/zsh
-            toolset: homebrew
-            coverage: false
-          - shell: /home/linuxbrew/.linuxbrew/bin/dash
-            toolset: homebrew
-            coverage: false
     steps:
       - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
         with:
@@ -150,13 +141,6 @@ jobs:
           sudo apt-get install -y -qq -o Dir::Cache::Archives="${HOME}/apt-archives" -o APT::Sandbox::User=root \
             bats dash zsh mandoc parallel ffmpeg mjpegtools vcdimager "${extra[@]}"
           sudo chown -R "$(id -u):$(id -g)" "${HOME}/apt-archives"
-      - name: Install the Homebrew toolset
-        if: matrix.toolset == 'homebrew'
-        run: |
-          set -euo pipefail
-          echo "/home/linuxbrew/.linuxbrew/bin" >> "${GITHUB_PATH}"
-          /home/linuxbrew/.linuxbrew/bin/brew install --formula \
-            bash dash-shell zsh coreutils findutils gnu-sed gawk grep diffutils ffmpeg mjpegtools vcdimager
       - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
         if: matrix.coverage
         with:
@@ -196,7 +180,7 @@ jobs:
           retention-days: 1
 
   test-macos:
-    name: test (macos, ${{ matrix.shell }}, ${{ matrix.toolset }})
+    name: test (macos, ${{ matrix.shell }}, ${{ matrix.toolset }}, ${{ matrix.ffmpeg || 'ffmpeg-full' }})
     needs: [plan, lint, test-linux]
     runs-on: macos-26
     timeout-minutes: 60
@@ -212,7 +196,11 @@ jobs:
         with:
           persist-credentials: false
       - name: Install shells and tools
-        run: brew install --formula bats-core bash dash-shell zsh parallel ffmpeg-full mjpegtools vcdimager
+        run: brew install --formula bats-core bash dash-shell zsh parallel mjpegtools vcdimager
+      - name: Install ffmpeg
+        env:
+          FORMULA: ${{ matrix.ffmpeg || 'ffmpeg-full' }}
+        run: brew install --formula "${FORMULA}"
       - name: Install the Homebrew toolset
         if: matrix.toolset == 'homebrew'
         run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils
@@ -240,9 +228,14 @@ jobs:
         if: ${{ !matrix.coverage }}
         env:
           YAKITSUKE_TEST_SHELLS: ${{ matrix.shell }}
+          TEST_TAGS: ${{ matrix.tags }}
         run: |
           dirs="$(paste -s -d : "${RUNNER_TEMP}/toolset-path")"
-          PATH="${dirs:+${dirs}:}${PATH}" sh test/run-matrix.sh
+          set --
+          if [ -n "${TEST_TAGS}" ]; then
+            set -- --filter-tags "${TEST_TAGS}" test
+          fi
+          PATH="${dirs:+${dirs}:}${PATH}" sh test/run-matrix.sh "$@"
       - name: Run the suites under bashcov
         if: matrix.coverage
         run: |

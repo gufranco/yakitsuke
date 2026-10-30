@@ -104,6 +104,7 @@ exit 1"
   [[ "${header}" == "352x288 rate=3 vbv=20" ]]
 }
 
+# bats test_tags=libass
 @test "film keeps its 23.976 frame rate and subtitles land in the bar" {
   # Arrange
   local clip="${BATS_FILE_TMPDIR}/film.mp4"

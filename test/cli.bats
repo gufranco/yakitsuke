@@ -43,6 +43,7 @@ teardown() {
   [[ "${lines[1]}" == "platform: ${platform}" ]]
 }
 
+# bats test_tags=libass
 @test "doctor passes when every required tool is installed" {
   # Arrange
   local expected="vcdxbuild"
@@ -110,6 +111,7 @@ teardown() {
   [[ "${output}" == "${expected}" ]]
 }
 
+# bats test_tags=libass
 @test "in a terminal the video and subtitles are asked for" {
   # Arrange
   local answers
@@ -395,6 +397,7 @@ exec \"\$REAL\" \"\$@\""
   [[ "${lines[0]}" =~ ^yakitsuke\ [0-9] ]]
 }
 
+# bats test_tags=libass
 @test "every flag is accepted and shows up in the plan" {
   # Arrange
   local -a flags=(--cd74 --cd90 --cd80 --film --crop --letterbox --no-sharpen --sharpen --no-color-convert --title "Night Film" --sub-style "Fontsize=20" --dry-run)
