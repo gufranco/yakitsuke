@@ -1,5 +1,18 @@
 # Changelog
 
+# [1.4.0](https://github.com/gufranco/yakitsuke/compare/v1.3.0...v1.4.0) (2026-10-30)
+
+
+### Bug Fixes
+
+* build each disc image in a staging folder ([f59a1f6](https://github.com/gufranco/yakitsuke/commit/f59a1f6e52e8bc013872fb8e655f4defa23d1e8e))
+* encode audio when ffmpeg lacks libsoxr ([c28f5fb](https://github.com/gufranco/yakitsuke/commit/c28f5fba01e5a4ad62d7f1200414c27fd4f78193))
+
+
+### Features
+
+* print the result as JSON with --json ([a40687e](https://github.com/gufranco/yakitsuke/commit/a40687e7d5237865fc878080f4855d300186afb2))
+
 # [1.3.0](https://github.com/gufranco/yakitsuke/compare/v1.2.0...v1.3.0) (2026-10-29)
 
 
