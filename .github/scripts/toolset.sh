@@ -2,7 +2,7 @@
 set -eu
 
 usage() {
-  printf 'usage: sh scripts/toolset.sh native|homebrew|gnu|uutils [farm-dir]\n' >&2
+  printf 'usage: sh .github/scripts/toolset.sh native|homebrew|gnu|uutils|busybox [farm-dir]\n' >&2
   exit 1
 }
 
@@ -59,8 +59,24 @@ linux_uutils_farm() {
   printf '%s\n' "${farm}"
 }
 
+linux_busybox_farm() {
+  mkdir -p "${farm}"
+  busybox_path="$(command -v busybox)"
+  for applet in $("${busybox_path}" --list); do
+    case "${applet}" in
+    sh | ash | hush | bash) continue ;;
+    *) ln -sf "${busybox_path}" "${farm}/${applet}" ;;
+    esac
+  done
+  printf '%s\n' "${farm}"
+}
+
+linux_homebrew() {
+  printf '%s\n' "${prefix}/bin" "${prefix}/sbin"
+}
+
 prefix=""
-if [ "${os}" = Darwin ]; then
+if [ "${os}" = Darwin ] || [ "${toolset}" = homebrew ]; then
   prefix="$(brew --prefix)"
 fi
 
@@ -68,6 +84,8 @@ case "${toolset}:${os}" in
 native:Darwin) darwin_system ;;
 native:*) ;;
 homebrew:Darwin | gnu:Darwin) darwin_homebrew ;;
+homebrew:Linux) linux_homebrew ;;
+busybox:Linux) linux_busybox_farm ;;
 gnu:Linux) linux_gnu_farm ;;
 uutils:Darwin) darwin_dirs uutils-coreutils uutils-diffutils uutils-findutils ;;
 uutils:Linux) linux_uutils_farm ;;

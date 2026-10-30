@@ -1,6 +1,6 @@
 SHELL := /bin/sh
 PREFIX ?= $(HOME)/.local
-SCRIPTS := bin/yakitsuke lib/*.sh scripts/*.sh test/*.sh test/*.bash test/*.bats
+SCRIPTS := bin/yakitsuke lib/*.sh scripts/*.sh .github/scripts/*.sh test/*.sh test/*.bash test/*.bats
 
 .PHONY: help fmt lint test test-all test-linux coverage check install
 
@@ -20,7 +20,7 @@ fmt:
 
 lint:
 	shfmt -i 2 -d $(SCRIPTS)
-	shellcheck -x -s sh -o all bin/yakitsuke lib/*.sh scripts/*.sh test/call.sh test/run-matrix.sh test/linux-container.sh
+	shellcheck -x -s sh -o all bin/yakitsuke lib/*.sh scripts/*.sh .github/scripts/*.sh test/call.sh test/run-matrix.sh test/linux-container.sh
 	sh scripts/check-names.sh
 	shellcheck -x -o all test/*.bash test/*.bats
 	shellcheck -s bash -o all completions/yakitsuke.bash

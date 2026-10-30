@@ -4,10 +4,10 @@ name: ci
 on:
   push:
     branches: [main]
+    paths-ignore: ['**.md']
   pull_request:
+    paths-ignore: ['**.md']
   workflow_dispatch:
-  schedule:
-    - cron: '23 5,13,21 * * *'
 
 permissions:
   contents: read
@@ -16,42 +16,40 @@ concurrency:
   group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
+  YAKITSUKE_TEST_JOBS: "4"
+
 jobs:
-  fresh:
-    name: decide whether this commit needs checking
+  plan:
+    name: choose the macOS legs
     runs-on: ubuntu-26.04
     timeout-minutes: 5
-    permissions:
-      actions: read
     outputs:
-      run: ${{ steps.decide.outputs.run }}
+      macos: ${{ steps.choose.outputs.macos }}
     steps:
       - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
         with:
           egress-policy: audit
-      - name: Skip a scheduled run on a commit CI already passed
-        id: decide
+      - name: Run every macOS leg except on a bot pull request
+        id: choose
         env:
-          GH_TOKEN: ${{ github.token }}
           EVENT: ${{ github.event_name }}
-          SHA: ${{ github.sha }}
-          REPO: ${{ github.repository }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
           set -euo pipefail
-          run=true
-          if [ "${EVENT}" = schedule ]; then
-            passed="$(gh run list --repo "${REPO}" --workflow ci --branch main --status success \
-              --limit 20 --json headSha -q '.[].headSha')"
-            if grep -qxF "${SHA}" <<<"${passed}"; then
-              run=false
-            fi
-          fi
-          echo "run=${run}" >> "${GITHUB_OUTPUT}"
+          legs='[{"shell":"/bin/sh","toolset":"native","coverage":false},{"shell":"/bin/bash","toolset":"native","coverage":false},{"shell":"/bin/zsh","toolset":"native","coverage":false},{"shell":"/opt/homebrew/bin/bash","toolset":"homebrew","coverage":true},{"shell":"/opt/homebrew/bin/zsh","toolset":"homebrew","coverage":false},{"shell":"/bin/sh","toolset":"uutils","coverage":false}]'
+          case "${EVENT}:${AUTHOR}" in
+          'pull_request:dependabot[bot]' | 'pull_request:renovate[bot]')
+            legs='[{"shell":"/opt/homebrew/bin/bash","toolset":"homebrew","coverage":true}]'
+            ;;
+          *) ;;
+          esac
+          echo "macos=${legs}" >> "${GITHUB_OUTPUT}"
 
   lint:
     name: lint
-    needs: fresh
-    if: needs.fresh.outputs.run == 'true'
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
@@ -89,52 +87,41 @@ jobs:
       - name: yamllint
         run: pipx run yamllint==1.37.1 -s -c .yamllint.yml .github .yamllint.yml
 
-  test:
-    name: test (${{ matrix.runner }}, ${{ matrix.shell }}, ${{ matrix.toolset }})
-    needs: fresh
-    if: needs.fresh.outputs.run == 'true'
-    runs-on: ${{ matrix.runner }}
+  test-linux:
+    name: test (linux, ${{ matrix.shell }}, ${{ matrix.toolset }})
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-26.04
-            shell: dash
+          - shell: dash
             toolset: native
-          - runner: ubuntu-26.04
-            shell: zsh
+            coverage: false
+          - shell: zsh
             toolset: native
-          - runner: ubuntu-26.04
-            shell: bash
+            coverage: false
+          - shell: bash
             toolset: native
-          - runner: ubuntu-26.04
-            shell: dash
+            coverage: true
+          - shell: dash
             toolset: gnu
-          - runner: ubuntu-26.04
-            shell: dash
+            coverage: false
+          - shell: dash
             toolset: uutils
-          - runner: macos-26
-            shell: /bin/sh
-            toolset: native
-          - runner: macos-26
-            shell: /bin/bash
-            toolset: native
-          - runner: macos-26
-            shell: /bin/zsh
-            toolset: native
-          - runner: macos-26
-            shell: /bin/sh
+            coverage: false
+          - shell: dash
+            toolset: busybox
+            coverage: false
+          - shell: /home/linuxbrew/.linuxbrew/bin/bash
             toolset: homebrew
-          - runner: macos-26
-            shell: /opt/homebrew/bin/bash
+            coverage: false
+          - shell: /home/linuxbrew/.linuxbrew/bin/zsh
             toolset: homebrew
-          - runner: macos-26
-            shell: /opt/homebrew/bin/zsh
+            coverage: false
+          - shell: /home/linuxbrew/.linuxbrew/bin/dash
             toolset: homebrew
-          - runner: macos-26
-            shell: /bin/sh
-            toolset: uutils
+            coverage: false
     steps:
       - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
         with:
@@ -142,53 +129,81 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - name: Install shells and tools (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq bats dash zsh ffmpeg mjpegtools vcdimager mandoc
-      - name: Install shells and tools (macOS)
-        if: runner.os == 'macOS'
-        run: brew install --formula bats-core bash dash zsh ffmpeg-full mjpegtools vcdimager
-      - name: Install the GNU toolset (Linux)
-        if: runner.os == 'Linux' && matrix.toolset == 'gnu'
-        run: sudo apt-get install -y -qq gnu-coreutils gawk
-      - name: Install the uutils toolset (Linux)
-        if: runner.os == 'Linux' && matrix.toolset == 'uutils'
-        run: sudo apt-get install -y -qq rust-coreutils
-      - name: Install the Homebrew toolset (macOS)
-        if: runner.os == 'macOS' && matrix.toolset == 'homebrew'
-        run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils libiconv file-formula
-      - name: Install the uutils toolset (macOS)
-        if: runner.os == 'macOS' && matrix.toolset == 'uutils'
-        run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
-      - name: Put the ${{ matrix.toolset }} toolset first on PATH
+      - uses: actions/cache@v6.1.0
+        with:
+          path: ~/apt-archives
+          key: apt-${{ matrix.toolset }}-${{ hashFiles('.github/workflows/ci.yml') }}
+      - name: Install shells and tools
         env:
           TOOLSET: ${{ matrix.toolset }}
-        run: sh scripts/toolset.sh "${TOOLSET}" "${RUNNER_TEMP}/toolset" >> "${GITHUB_PATH}"
+        run: |
+          set -euo pipefail
+          extra=()
+          case "${TOOLSET}" in
+          gnu) extra=(gnu-coreutils gawk) ;;
+          uutils) extra=(rust-coreutils) ;;
+          busybox) extra=(busybox) ;;
+          *) ;;
+          esac
+          mkdir -p "${HOME}/apt-archives/partial"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq -o Dir::Cache::Archives="${HOME}/apt-archives" -o APT::Sandbox::User=root \
+            bats dash zsh mandoc parallel ffmpeg mjpegtools vcdimager "${extra[@]}"
+          sudo chown -R "$(id -u):$(id -g)" "${HOME}/apt-archives"
+      - name: Install the Homebrew toolset
+        if: matrix.toolset == 'homebrew'
+        run: |
+          set -euo pipefail
+          echo "/home/linuxbrew/.linuxbrew/bin" >> "${GITHUB_PATH}"
+          /home/linuxbrew/.linuxbrew/bin/brew install --formula \
+            bash dash-shell zsh coreutils findutils gnu-sed gawk grep diffutils ffmpeg mjpegtools vcdimager
+      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
+        if: matrix.coverage
+        with:
+          bundler-cache: true
+      - name: Build the ${{ matrix.toolset }} toolset
+        env:
+          TOOLSET: ${{ matrix.toolset }}
+        run: sh .github/scripts/toolset.sh "${TOOLSET}" "${RUNNER_TEMP}/toolset" > "${RUNNER_TEMP}/toolset-path"
       - name: Show which shell runs the suites
         if: contains(matrix.shell, 'bash') || contains(matrix.shell, 'zsh')
         env:
           SHELL_UNDER_TEST: ${{ matrix.shell }}
         run: '"${SHELL_UNDER_TEST}" --version | head -n 1'
       - name: Show which tools the run uses
-        run: sh bin/yakitsuke doctor
+        run: |
+          dirs="$(paste -s -d : "${RUNNER_TEMP}/toolset-path")"
+          PATH="${dirs:+${dirs}:}${PATH}" sh bin/yakitsuke doctor
       - name: Run the suites under ${{ matrix.shell }}
+        if: ${{ !matrix.coverage }}
         env:
           YAKITSUKE_TEST_SHELLS: ${{ matrix.shell }}
-        run: sh test/run-matrix.sh
+        run: |
+          dirs="$(paste -s -d : "${RUNNER_TEMP}/toolset-path")"
+          PATH="${dirs:+${dirs}:}${PATH}" sh test/run-matrix.sh
+      - name: Run the suites under bashcov
+        if: matrix.coverage
+        run: |
+          ruby_dir="$(dirname "$(command -v ruby)")"
+          dirs="$(paste -s -d : "${RUNNER_TEMP}/toolset-path")"
+          PATH="${ruby_dir}:${dirs:+${dirs}:}${PATH}" sh scripts/coverage.sh 0
+      - uses: actions/upload-artifact@v7.0.2
+        if: matrix.coverage
+        with:
+          name: coverage-Linux
+          path: coverage/.resultset.json
+          include-hidden-files: true
+          retention-days: 1
 
-  coverage:
-    name: coverage (${{ matrix.runner }})
-    needs: fresh
-    if: needs.fresh.outputs.run == 'true'
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 90
+  test-macos:
+    name: test (macos, ${{ matrix.shell }}, ${{ matrix.toolset }})
+    needs: [plan, lint, test-linux]
+    runs-on: macos-26
+    timeout-minutes: 60
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-        runner: [ubuntu-26.04, macos-26]
+        include: ${{ fromJSON(needs.plan.outputs.macos) }}
     steps:
       - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
         with:
@@ -196,30 +211,55 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
+      - name: Install shells and tools
+        run: brew install --formula bats-core bash dash-shell zsh parallel ffmpeg-full mjpegtools vcdimager
+      - name: Install the Homebrew toolset
+        if: matrix.toolset == 'homebrew'
+        run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils
+      - name: Install the uutils toolset
+        if: matrix.toolset == 'uutils'
+        run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
       - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
+        if: matrix.coverage
         with:
           bundler-cache: true
-      - name: Install the test tools (Linux)
-        if: runner.os == 'Linux'
+      - name: Build the ${{ matrix.toolset }} toolset
+        env:
+          TOOLSET: ${{ matrix.toolset }}
+        run: sh .github/scripts/toolset.sh "${TOOLSET}" "${RUNNER_TEMP}/toolset" > "${RUNNER_TEMP}/toolset-path"
+      - name: Show which shell runs the suites
+        if: contains(matrix.shell, 'bash') || contains(matrix.shell, 'zsh')
+        env:
+          SHELL_UNDER_TEST: ${{ matrix.shell }}
+        run: '"${SHELL_UNDER_TEST}" --version | head -n 1'
+      - name: Show which tools the run uses
         run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq bats ffmpeg mjpegtools vcdimager mandoc
-      - name: Install the test tools (macOS)
-        if: runner.os == 'macOS'
-        run: brew install --formula bash bats-core ffmpeg-full mjpegtools vcdimager
-      - name: Measure line coverage
-        run: sh scripts/coverage.sh 0
+          dirs="$(paste -s -d : "${RUNNER_TEMP}/toolset-path")"
+          PATH="${dirs:+${dirs}:}${PATH}" sh bin/yakitsuke doctor
+      - name: Run the suites under ${{ matrix.shell }}
+        if: ${{ !matrix.coverage }}
+        env:
+          YAKITSUKE_TEST_SHELLS: ${{ matrix.shell }}
+        run: |
+          dirs="$(paste -s -d : "${RUNNER_TEMP}/toolset-path")"
+          PATH="${dirs:+${dirs}:}${PATH}" sh test/run-matrix.sh
+      - name: Run the suites under bashcov
+        if: matrix.coverage
+        run: |
+          ruby_dir="$(dirname "$(command -v ruby)")"
+          dirs="$(paste -s -d : "${RUNNER_TEMP}/toolset-path")"
+          PATH="${ruby_dir}:${dirs:+${dirs}:}${PATH}" sh scripts/coverage.sh 0
       - uses: actions/upload-artifact@v7.0.2
+        if: matrix.coverage
         with:
-          name: coverage-${{ runner.os }}
+          name: coverage-macOS
           path: coverage/.resultset.json
           include-hidden-files: true
           retention-days: 1
 
   coverage-gate:
     name: coverage gate
-    needs: coverage
+    needs: [test-linux, test-macos]
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:

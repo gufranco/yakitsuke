@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     steps:
@@ -49,3 +50,4 @@ jobs:
             --match-head-commit "${HEAD_SHA}" \
             --subject "${title} (#${number})" \
             --body "Dependabot update, merged after CI passed on ${HEAD_SHA}."
+          gh workflow run ci.yml --repo "${REPO}" --ref main

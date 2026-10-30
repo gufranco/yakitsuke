@@ -43,5 +43,4 @@ Guidance for anyone, human or agent, changing yakitsuke. What yakitsuke is and h
 
 As of 2026-10-29, closed in the change that removes each line:
 
-- No Linux BusyBox or Linux Homebrew leg in CI or `scripts/toolset.sh`.
-- The member's own dependencies are not yet tested in every build the seven toolsets offer.
+- Homebrew's plain `ffmpeg` on macOS is not tested; the macOS jobs install `ffmpeg-full` only.

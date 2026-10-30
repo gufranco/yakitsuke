@@ -13,7 +13,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sh scripts/set-version.sh ${nextRelease.version}"
+        "prepareCmd": "sh .github/scripts/set-version.sh ${nextRelease.version}"
       }
     ],
     [
