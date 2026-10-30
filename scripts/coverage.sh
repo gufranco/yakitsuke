@@ -28,7 +28,19 @@ wrapper="${wrapper_dir}/bashcov-shell"
 } >"${wrapper}"
 chmod 0755 "${wrapper}"
 
-YAKITSUKE_TEST_SHELL="${wrapper}" bats "${root}/test"
+test_jobs="${YAKITSUKE_TEST_JOBS:-1}"
+case "${test_jobs}" in
+'' | *[!0-9]*)
+  printf 'YAKITSUKE_TEST_JOBS must be a whole number, got: %s\n' "${test_jobs}" >&2
+  exit 2
+  ;;
+*) ;;
+esac
+set --
+if [ "${test_jobs}" -gt 1 ]; then
+  set -- --jobs "${test_jobs}" --no-parallelize-within-files
+fi
+YAKITSUKE_TEST_SHELL="${wrapper}" bats "$@" "${root}/test"
 
 cd "${root}"
 python3 scripts/coverage-gate.py '/(bin/yakitsuke|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json

@@ -18,6 +18,18 @@ if [ "$#" -eq 0 ]; then
   set -- "${tests_dir}"
 fi
 
+test_jobs="${YAKITSUKE_TEST_JOBS:-1}"
+case "${test_jobs}" in
+'' | *[!0-9]*)
+  printf 'YAKITSUKE_TEST_JOBS must be a whole number, got: %s\n' "${test_jobs}" >&2
+  exit 2
+  ;;
+*) ;;
+esac
+if [ "${test_jobs}" -gt 1 ]; then
+  set -- --jobs "${test_jobs}" --no-parallelize-within-files "$@"
+fi
+
 old_ifs="${IFS}"
 IFS='|'
 for shell in ${shells}; do
