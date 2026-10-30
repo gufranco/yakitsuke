@@ -14,7 +14,8 @@ Guidance for anyone, human or agent, changing yakitsuke. What yakitsuke is and h
 | [`man/yakitsuke.1`](man/yakitsuke.1) | The man page |
 | [`completions/`](completions) | bash, zsh and fish completions |
 | [`test/`](test) | The `bats` suite, its helpers, the golden transcripts, the shell matrix runner and the Linux container script |
-| [`scripts/`](scripts) | Coverage, the coverage gate, the Linux coverage run, the name check, the toolset helper and the release version stamp |
+| [`scripts/`](scripts) | Coverage, the coverage gate, the Linux coverage run and the name check, which `make` runs |
+| [`.github/scripts/`](.github/scripts) | The toolset helper and the release version stamp, which only CI and the release run |
 
 ## Names
 
@@ -32,6 +33,7 @@ Guidance for anyone, human or agent, changing yakitsuke. What yakitsuke is and h
 
 - Every encoder setting was chosen by measurement. A change to the picture chain or the subtitle style carries a VMAF or visual measurement that beats the current one.
 - Tests encode real clips that ffmpeg generates, through real `mpeg2enc` and `vcdxbuild`.
+- Homebrew's plain `ffmpeg` has neither libass nor libsoxr. Without libsoxr, yakitsuke resamples with ffmpeg's own engine; without libass it refuses to burn subtitles and names `ffmpeg-full`. Tests that burn subtitles carry `# bats test_tags=libass`, and the macOS leg that installs plain `ffmpeg` runs the suite with `--filter-tags '!libass'`.
 - Each disc's image is built in a hidden staging folder inside the output folder, then moved into place, so `--resume` never finds half an image. The cue sheet names its image without a folder, so the pair can move together.
 
 ## Release
@@ -41,6 +43,4 @@ Guidance for anyone, human or agent, changing yakitsuke. What yakitsuke is and h
 
 ## Gaps against FAMILY.md
 
-As of 2026-10-29, closed in the change that removes each line:
-
-- Homebrew's plain `ffmpeg` on macOS is not tested; the macOS jobs install `ffmpeg-full` only.
+None (as of 2026-10-30).

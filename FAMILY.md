@@ -136,22 +136,22 @@ The flavor is `gnu`, `uutils`, `bsd`, `mawk`, `busybox` or `unknown`. It comes f
 
 ## Toolsets
 
-Every tool that can be installed in more than one version on a supported system is tested in every one of them. Every member runs on the seven toolsets below, and CI runs the whole suite on each:
+Every tool that can be installed in more than one version on a supported system is tested in every one of them. Every member runs on the six toolsets below, and CI runs the whole suite on each:
 
 | Toolset | What it is |
 |:--------|:-----------|
 | Linux, uutils | Ubuntu's default since 25.10: uutils coreutils, with GNU sed and mawk |
 | Linux, GNU | GNU coreutils and gawk |
 | Linux, BusyBox | BusyBox's applets first on `PATH`: coreutils, awk, sed, grep, find and the rest |
-| Linux, Homebrew | Homebrew on Linux, with its current build of every tool the member calls first on `PATH` |
 | macOS, native | Everything macOS ships, first on `PATH`: its BSD tools, bash 3.2, zsh, perl, openssl and the rest |
 | macOS, Homebrew | Homebrew's current build of every tool macOS also ships, first on `PATH`: coreutils, findutils, gnu-sed, gawk, grep, diffutils, bash, zsh, and each member's own, such as openssl@3, curl, perl, libarchive, gzip, bzip2, libiconv or file-formula |
 | macOS, uutils | Homebrew's uutils-coreutils, uutils-diffutils and uutils-findutils, first on `PATH` |
 
 - A member's own dependencies are tested in every build those routes offer, such as `ffmpeg` and `ffmpeg-full`, `subliminal` from apt and its current release, or `age` from apt and from Homebrew. A dependency that gains a new route or build gets its leg in the same change.
-- A script uses only options all seven accept. Where they differ, the code handles each one and a test covers it. A change that passes on one toolset only is not done.
+- Homebrew on Linux is not a supported route: no member documents it, and CI does not test it.
+- A script uses only options all six accept. Where they differ, the code handles each one and a test covers it. A change that passes on one toolset only is not done.
 - Any tool macOS ships that Homebrew also builds in a newer version is tested in both: the macOS native toolset runs the system's copy, and the macOS Homebrew toolset runs Homebrew's. A member that starts calling such a tool adds its formula to the Homebrew leg in CI.
-- `.github/scripts/toolset.sh native`, `homebrew`, `gnu`, `uutils` or `busybox` prints the directories that put a toolset first on `PATH`; on Linux, `homebrew` is Homebrew on Linux, and `busybox` links BusyBox's applets other than its shells. CI uses it, and a report is reproduced by putting the reporter's toolset first: `export PATH="$(sh .github/scripts/toolset.sh gnu | paste -sd: -):$PATH"`.
+- `.github/scripts/toolset.sh native`, `homebrew`, `gnu`, `uutils` or `busybox` prints the directories that put a toolset first on `PATH`; on Linux, `busybox` links BusyBox's applets other than its shells. CI uses it, and a report is reproduced by putting the reporter's toolset first: `export PATH="$(sh .github/scripts/toolset.sh gnu | paste -sd: -):$PATH"`.
 
 ## Safety
 
@@ -196,7 +196,7 @@ Every tool that can be installed in more than one version on a supported system 
 - A test that hides a tool runs the program with `<prefix>_test_farm`, a folder of links to every program on PATH except the hidden ones. It links one PATH folder per `ln -s` call: one call per program forks thousands of times on a Homebrew Mac and cost about 11 seconds per test.
 - `bats` tests drive the real tools on real files, disks or media, and inject faults only through small wrappers on `PATH`.
 - Golden transcripts guard the terminal output. A test runs a whole flow, replaces the values that change between runs, such as paths, sizes and rates, and compares the result with `test/golden/<flow>.<OS>.txt`. `<TOOL>_TEST_RECORD=1` rewrites them from a fresh run, on macOS and in the container; the diff is read before it is committed.
-- 100 percent bashcov line coverage, gated locally and in CI. `make coverage` runs bashcov on the Mac and in the Ubuntu container and merges both before the gate, so a Linux-only branch counts locally as it does in CI. Every `case` branch runs a command, because bashcov never counts a branch that holds only `;;`.
+- 100 percent bashcov line coverage, gated locally and in CI. `make coverage` runs bashcov on the Mac and in the Ubuntu container and merges both before the gate, so a Linux-only branch counts locally as it does in CI. Every `case` branch runs a command, because bashcov never counts a branch that holds only `;;`. The condition of an `if`, `elif`, `while` or `until` stays on one line, because bashcov 4.0.1 never marks a backslash-continued line of a condition as run.
 - Tests never write the member's version as a literal; they read it from `lib/core.sh`, so a release does not break them.
 - A wait loop polls from milliseconds upward, never with a fixed `sleep 1`. On a runner without `timeout`, a one-second poll per `dd` made two members ten times slower.
 - Every test is three blocks, opened by the bare markers `# Arrange`, `# Act` and `# Assert`.
