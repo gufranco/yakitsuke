@@ -151,6 +151,7 @@ yk_doctor_tool() {
 yk_doctor_filter() {
   yk_df_check=yk_has_filter
   [ "$1" = subtitles ] && yk_df_check=yk_has_subtitle_alpha
+  [ "$1" = soxr ] && yk_df_check=yk_has_soxr
   if [ -n "${YK_FFMPEG}" ] && "${yk_df_check}" "${YK_FFMPEG}" "$1"; then
     yk_doctor_row "ffmpeg $1" ok "${YK_FFMPEG}"
     return 0
@@ -172,6 +173,7 @@ yk_doctor() {
   YK_FFMPEG="$(yk_resolve_ffmpeg yes 2>/dev/null || yk_resolve_ffmpeg no 2>/dev/null || true)"
   yk_doctor_filter subtitles "needed to burn subtitles: brew install ffmpeg-full"
   yk_doctor_filter zscale "16-bit colour conversion: an ffmpeg built with zimg"
+  yk_doctor_filter soxr "finer audio resampling: an ffmpeg built with libsoxr"
   return "${yk_dr_status}"
 }
 

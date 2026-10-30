@@ -80,6 +80,7 @@ export LC_ALL
 : "${YK_PLAN:=}"
 : "${YK_TOTAL:=0}"
 : "${YK_ZSCALE:=no}"
+: "${YK_SOXR:=no}"
 : "${YK_LOUDNORM:=}"
 : "${YK_GRAPH:=}"
 : "${YK_AUDIO_FILTER:=}"

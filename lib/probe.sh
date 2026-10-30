@@ -11,6 +11,10 @@ yk_has_subtitle_alpha() {
   "$1" -hide_banner -h filter=subtitles 2>/dev/null | awk '$1 == "alpha" { hit = 1 } END { exit !hit }'
 }
 
+yk_has_soxr() {
+  "$1" -hide_banner -buildconf 2>/dev/null | awk '$1 == "--enable-libsoxr" { hit = 1 } END { exit !hit }'
+}
+
 yk_ffmpeg_candidates() {
   [ -n "${YAKITSUKE_FFMPEG:-}" ] && printf '%s\n' "${YAKITSUKE_FFMPEG}"
   printf '%s\n' "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/ffmpeg-full/bin/ffmpeg" /usr/local/opt/ffmpeg-full/bin/ffmpeg

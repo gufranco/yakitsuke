@@ -68,6 +68,23 @@ exit 1"
   [[ "${#left[@]}" -eq 0 ]]
 }
 
+@test "an ffmpeg built without libsoxr still writes the image" {
+  # Arrange
+  local clip="${BATS_FILE_TMPDIR}/pal.mp4"
+  local plain="${WORK}/plain/ffmpeg"
+  mkdir -p "${WORK}/plain"
+  printf '#!/bin/sh\ncase "$*" in\n*-buildconf*) printf "  configuration:\\n"; exit 0 ;;\n*resampler=soxr*) printf "Requested resampling engine is unavailable\\n" >&2; exit 234 ;;\nesac\nexec %q "$@"\n' \
+    "${YAKITSUKE_TEST_FFMPEG}" >"${plain}"
+  chmod +x "${plain}"
+
+  # Act
+  YAKITSUKE_FFMPEG="${plain}" run yk_test_run --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ -s "${OUT}/pal_disc1.bin" && -s "${OUT}/pal_disc1.cue" ]]
+}
+
 @test "a PAL source becomes a verified PAL Video CD image" {
   # Arrange
   local clip="${BATS_FILE_TMPDIR}/pal.mp4"

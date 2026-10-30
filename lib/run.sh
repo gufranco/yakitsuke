@@ -49,6 +49,8 @@ yk_run_tools() {
   done
   YK_ZSCALE=no
   yk_has_filter "${YK_FFMPEG}" zscale && YK_ZSCALE=yes
+  YK_SOXR=no
+  yk_has_soxr "${YK_FFMPEG}" && YK_SOXR=yes
   return 0
 }
 

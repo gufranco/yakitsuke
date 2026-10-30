@@ -54,6 +54,7 @@ teardown() {
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"${expected}"*" ok "* ]]
   [[ "${output}" == *"ffmpeg subtitles   ok"* ]]
+  [[ "${output}" == *"ffmpeg soxr        ok"* ]]
 }
 
 @test "doctor fails and says how to install vcdimager when it is missing" {
@@ -94,6 +95,7 @@ teardown() {
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"ffmpeg subtitles   missing"* ]]
   [[ "${output}" == *"ffmpeg zscale      missing"* ]]
+  [[ "${output}" == *"ffmpeg soxr        missing  finer audio resampling: an ffmpeg built with libsoxr"* ]]
 }
 
 @test "no video outside a terminal is an error with a hint" {

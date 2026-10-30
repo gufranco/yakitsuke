@@ -90,7 +90,11 @@ yk_filter_graph() {
 yk_audio_chain() {
   [ "${YK_SPEED}" = 1 ] || printf 'atempo=%s\n' "${YK_SPEED}"
   [ -z "${YK_LOUDNORM}" ] || printf '%s\n' "${YK_LOUDNORM}"
-  printf 'aresample=44100:resampler=soxr:precision=28:dither_method=triangular_hp\n'
+  if [ "${YK_SOXR}" = yes ]; then
+    printf 'aresample=44100:resampler=soxr:precision=28:dither_method=triangular_hp\n'
+  else
+    printf 'aresample=44100:dither_method=triangular_hp\n'
+  fi
   printf 'aformat=sample_fmts=s16:channel_layouts=stereo\n'
 }
 

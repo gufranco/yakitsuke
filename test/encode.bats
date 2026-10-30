@@ -116,7 +116,18 @@ setup_file() {
   local expected=$'atempo=1.042708\nloudnorm=I=-20\naresample=44100:resampler=soxr:precision=28:dither_method=triangular_hp\naformat=sample_fmts=s16:channel_layouts=stereo'
 
   # Act
-  YK_SPEED=1.042708 YK_LOUDNORM="loudnorm=I=-20" run yk_test_call yk_audio_chain
+  YK_SOXR=yes YK_SPEED=1.042708 YK_LOUDNORM="loudnorm=I=-20" run yk_test_call yk_audio_chain
+
+  # Assert
+  [[ "${output}" == "${expected}" ]]
+}
+
+@test "without libsoxr the audio chain resamples with ffmpeg's own engine" {
+  # Arrange
+  local expected=$'aresample=44100:dither_method=triangular_hp\naformat=sample_fmts=s16:channel_layouts=stereo'
+
+  # Act
+  YK_SOXR=no run yk_test_call yk_audio_chain
 
   # Assert
   [[ "${output}" == "${expected}" ]]
