@@ -86,6 +86,14 @@ yk_test_farm() {
   printf '%s\n' "${farm}"
 }
 
+yk_test_command_name() {
+  if [[ -r "/proc/$1/comm" ]]; then
+    printf '%s\n' "$(<"/proc/$1/comm")"
+    return 0
+  fi
+  ps -o comm= -p "$1"
+}
+
 yk_test_media() {
   local out="$1"
   local seconds="$2"
