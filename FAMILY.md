@@ -14,6 +14,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 | fusho | Sends an encrypted message through any chat, using the recipient's published SSH keys | [gufranco/fusho](https://github.com/gufranco/fusho) |
 | jimaku | Downloads subtitles for videos and saves them as UTF-8 | [gufranco/jimaku](https://github.com/gufranco/jimaku) |
 | kakikomi | Writes a disk image to removable media, verified chunk by chunk, never mounted | [gufranco/kakikomi](https://github.com/gufranco/kakikomi) |
+| katazuke | Clears the junk other systems leave on a FAT or exFAT disk, then sorts its folders | [gufranco/katazuke](https://github.com/gufranco/katazuke) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
 | shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
 | yakitsuke | Turns any video into Video CD images, split across discs, with readable subtitles | [gufranco/yakitsuke](https://github.com/gufranco/yakitsuke) |
@@ -23,7 +24,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 Copy this file in unchanged, write an `AGENTS.md` with the same headings as the other members', follow both, and add the repository to the table above in every member in the same task. With the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho jimaku kakikomi kiyome shiwake yakitsuke; do
+for member in fusho jimaku kakikomi katazuke kiyome shiwake yakitsuke; do
   cmp FAMILY.md "../${member}/FAMILY.md"
 done
 ```
@@ -33,7 +34,7 @@ A new member also needs, in the same task:
 1. The identical files listed under Layout and tooling, and a `ci.yml` modeled on an existing member's, with its own package lists and the shared jobs, `plan`, `lint`, `test-linux`, `test-macos` and `coverage gate`.
 2. A public repository, so Actions minutes and the scheduled runs cost nothing, with Dependabot alerts on and the Renovate GitHub App, which the owner keeps installed on every repository.
 3. The `TAP_APP_ID` and `TAP_APP_PRIVATE_KEY` secrets, which `formula.yml` uses to reach the tap.
-4. In the tap, `Formula/<tool>.rb`, and the tool's name in the allowlist of the tap's `formula-bump.yml`.
+4. In the tap, `Formula/<tool>.rb`, written once the first release tag exists, and the tool's row in each of the tap's four READMEs.
 5. Its name in the `for member in` loop above, in every member.
 
 A member that replaces a script in the owner's dotfiles, such as a zsh module, removes that script and its `source` line in the same task, and the dotfiles install the member instead: the Brewfile on macOS, and on Linux `install.sh`, which clones the member and runs `make install`.
