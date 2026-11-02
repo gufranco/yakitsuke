@@ -19,7 +19,7 @@
 
 </div>
 
-一条命令，203 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
+一条命令，205 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
 
 ---
 

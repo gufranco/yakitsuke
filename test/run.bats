@@ -452,3 +452,32 @@ head -c 11000000 /dev/zero >>\"\$4\""
   run compgen -G "${WORK}/tmp/yakitsuke.*"
   [[ "${status}" -ne 0 ]]
 }
+
+@test "the working folder is removed even when a late write beats the first removal" {
+  # Arrange
+  mkdir -p "${WORK}/tmp"
+  yk_test_shim rm "case \"\$1:\$2\" in -rf:*/tmp/yakitsuke.*) \"\$REAL\" \"\$@\"; [ -e \"${WORK}/raced\" ] && exit 0; : >\"${WORK}/raced\"; mkdir -p \"\$2\"; : >\"\$2/late\"; exit 1 ;; esac; exec \"\$REAL\" \"\$@\""
+
+  # Act
+  TMPDIR="${WORK}/tmp" run yk_test_run --dry-run --output-dir "${OUT}" "${BATS_FILE_TMPDIR}/pal.mp4"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" != *"could not remove"* ]]
+  [[ -e "${WORK}/raced" ]]
+  run compgen -G "${WORK}/tmp/yakitsuke.*"
+  [[ "${status}" -ne 0 ]]
+}
+
+@test "a working folder that keeps being written to is named in a warning" {
+  # Arrange
+  mkdir -p "${WORK}/tmp"
+  yk_test_shim rm "case \"\$1:\$2\" in -rf:*/tmp/yakitsuke.*) \"\$REAL\" \"\$@\"; mkdir -p \"\$2\"; : >\"\$2/late\"; exit 1 ;; esac; exec \"\$REAL\" \"\$@\""
+
+  # Act
+  TMPDIR="${WORK}/tmp" run yk_test_run --dry-run --output-dir "${OUT}" "${BATS_FILE_TMPDIR}/pal.mp4"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"yakitsuke: warning: could not remove the working folder ${WORK}/tmp/yakitsuke."* ]]
+}

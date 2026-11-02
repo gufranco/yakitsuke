@@ -34,10 +34,19 @@ YK_SHARE="$(cd "${yk_self%/*}/../share" && pwd)" || exit 1
 # shellcheck source=SCRIPTDIR/../lib/run.sh
 . "${YK_LIB}/run.sh"
 
+yk_remove_tree() {
+  yk_rt_try=0
+  while ! rm -rf "$1" 2>/dev/null && [ "${yk_rt_try}" -lt 3 ]; do
+    yk_rt_try=$((yk_rt_try + 1))
+    sleep 1
+  done
+  [ ! -e "$1" ] || yk_warning "could not remove the working folder $1"
+}
+
 yk_cleanup() {
-  [ -z "${YK_STAGE}" ] || rm -rf "${YK_STAGE}"
+  [ -z "${YK_STAGE}" ] || yk_remove_tree "${YK_STAGE}"
   YK_STAGE=""
-  [ -n "${YK_WORK}" ] && rm -rf "${YK_WORK}"
+  [ -z "${YK_WORK}" ] || yk_remove_tree "${YK_WORK}"
   YK_WORK=""
 }
 
