@@ -16,7 +16,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 | kakikomi | Writes a disk image to removable media, verified chunk by chunk, never mounted | [gufranco/kakikomi](https://github.com/gufranco/kakikomi) |
 | katazuke | Clears the junk other systems leave on a FAT or exFAT disk, then sorts its folders | [gufranco/katazuke](https://github.com/gufranco/katazuke) |
 | kiban | Runs Docker and the local databases a project needs, in a native VM on a Mac and with no VM on Linux | [gufranco/kiban](https://github.com/gufranco/kiban) |
-| kirisute | Cuts Nintendo DS and DSi ROM files down to the size their header declares | [gufranco/kirisute](https://github.com/gufranco/kirisute) |
+| kirisute | Cuts Game Boy Advance, DS, DSi and 3DS ROMs and PSP ISOs down to their real size, and renames them after their headers | [gufranco/kirisute](https://github.com/gufranco/kirisute) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
 | shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
 | yakitsuke | Turns any video into Video CD images, split across discs, with readable subtitles | [gufranco/yakitsuke](https://github.com/gufranco/yakitsuke) |
