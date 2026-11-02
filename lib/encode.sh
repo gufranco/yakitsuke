@@ -30,7 +30,7 @@ yk_video_pre() {
   fi
   [ "${YK_SPEED}" = 1 ] || printf 'setpts=PTS/%s\n' "${YK_SPEED}"
   printf 'fps=%s\n' "${YK_FPS}"
-  [ "${YK_DENOISE}" = off ] || printf 'fftdnoiz=sigma=%s\n' "${YK_DENOISE}"
+  [ "${YK_DENOISE}" = off ] || [ "${YK_FIELD_MODE}" = keep ] || printf 'fftdnoiz=sigma=%s\n' "${YK_DENOISE}"
   if [ "${YK_FIT}" = crop ]; then
     printf 'crop=%s:%s:%s:%s\n' "${YK_CROP_W}" "${YK_CROP_H}" "${YK_CROP_X}" "${YK_CROP_Y}"
   fi
@@ -45,7 +45,19 @@ yk_matrix_in() {
   esac
 }
 
+yk_video_pad() {
+  if [ "${YK_INNER_W}" -ne "${YK_RASTER_W}" ] || [ "${YK_INNER_H}" -ne "${YK_RASTER_H}" ]; then
+    printf 'pad=%s:%s:%s:%s:color=black\n' "${YK_RASTER_W}" "${YK_RASTER_H}" "${YK_RPAD_X}" "${YK_RPAD_Y}"
+  fi
+  return 0
+}
+
 yk_video_scale() {
+  if [ "${YK_FIELD_MODE}" = keep ]; then
+    printf 'scale=%s:%s:interl=1:flags=lanczos+accurate_rnd+full_chroma_int\n' "${YK_INNER_W}" "${YK_INNER_H}"
+    yk_video_pad
+    return 0
+  fi
   yk_vs_in="$(yk_matrix_in)"
   if [ "${YK_ZSCALE}" = yes ]; then
     printf 'setparams=color_primaries=%s:color_trc=bt709:colorspace=%s:range=tv\nformat=yuv444p16\n' "${yk_vs_in}" "${yk_vs_in}"
@@ -55,12 +67,14 @@ yk_video_scale() {
     printf 'zscale=t=bt709:m=%s:p=%s:r=tv\n' "${YK_MATRIX_OUT}" "${YK_MATRIX_OUT}"
   fi
   [ "${YK_SHARPEN}" = no ] || printf 'unsharp=5:5:0.4:5:5:0.0\n'
-  if [ "${YK_INNER_W}" -ne "${YK_RASTER_W}" ] || [ "${YK_INNER_H}" -ne "${YK_RASTER_H}" ]; then
-    printf 'pad=%s:%s:%s:%s:color=black\n' "${YK_RASTER_W}" "${YK_RASTER_H}" "${YK_RPAD_X}" "${YK_RPAD_Y}"
-  fi
+  yk_video_pad
 }
 
 yk_video_finish() {
+  if [ "${YK_FIELD_MODE}" = keep ]; then
+    printf 'format=yuv420p\nsetfield=%s\nsetsar=1\n' "${YK_FIELD_ORDER}"
+    return 0
+  fi
   [ "${YK_ZSCALE}" = no ] || printf 'zscale=c=center:d=error_diffusion\n'
   printf 'format=yuv420p\nsetsar=1\n'
 }
@@ -130,6 +144,7 @@ yk_ffmpeg_disc() {
     set -- "$@" -f yuv4mpegpipe -strict -1 - -map "${yk_fd_map}" -af "${YK_AUDIO_FILTER}" \
       -c:a mp2 -b:a 224k -ar 44100 -ac 2 -f mp2 audio.mp2
   elif [ "${YK_FORMAT:-vcd}" = svcd ]; then
+    [ "${YK_FIELD_MODE}" != keep ] || set -- "$@" -flags +ilme+ildct
     set -- "$@" -map "${yk_fd_map}" -af "${YK_AUDIO_FILTER}" -c:v mpeg2video -b:v "${YK_VIDEO_KBPS}k" -minrate 0 \
       -maxrate 2516k -bufsize 1835008 -g "${YK_GOP}" -bf 2 -mbd rd -cmp satd -subcmp satd -trellis 2 -dia_size 3 \
       -mpv_flags +naq+qp_rd+cbp_rd -scan_offset 1 -aspect "${YK_DISPLAY}" -pix_fmt yuv420p -c:a mp2 -b:a 224k \
@@ -149,6 +164,11 @@ yk_mpeg2enc_profile() {
     [ "${YK_DISPLAY}" = 4:3 ] || yk_mp_aspect=3
     yk_mp_profile="-f 4"
     [ "${YK_PULLDOWN}" = no ] || yk_mp_profile="-f 5 -p"
+    if [ "${YK_FIELD_MODE}" = keep ]; then
+      yk_mp_field=t
+      [ "${YK_FIELD_ORDER}" = tff ] || yk_mp_field=b
+      yk_mp_profile="${yk_mp_profile} -I 1 -z ${yk_mp_field}"
+    fi
     printf '%s\n' "${yk_mp_profile} -b 2516 -t ${YK_VIDEO_KBPS} -a ${yk_mp_aspect}"
     return 0
   fi

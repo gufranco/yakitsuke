@@ -9,6 +9,9 @@ setup_file() {
   yk_test_media "${BATS_FILE_TMPDIR:?}/square.mp4" 3 320x240 25
   yk_test_media "${BATS_FILE_TMPDIR:?}/ntsc.mp4" 3 640x360 30000/1001
   yk_test_media "${BATS_FILE_TMPDIR:?}/film.mp4" 3 640x360 24000/1001
+  yk_test_media "${BATS_FILE_TMPDIR:?}/tff576.mp4" 8 720x576 50 -vf "interlace=scan=tff,setfield=tff" -flags +ildct+ilme
+  yk_test_media "${BATS_FILE_TMPDIR:?}/bff576.mp4" 8 720x576 50 -vf "interlace=scan=bff,setfield=bff" -flags +ildct+ilme
+  yk_test_media "${BATS_FILE_TMPDIR:?}/tff480.mp4" 8 640x480 50 -vf "interlace=scan=tff,setfield=tff" -flags +ildct+ilme
   yk_test_srt "${BATS_FILE_TMPDIR:?}/one.srt" 1
   "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "testsrc2=size=352x288:rate=25:duration=1" \
     -f lavfi -i "sine=sample_rate=44100:duration=1" -c:v mpeg1video -c:a mp2 -ac 2 -f vcd "${BATS_FILE_TMPDIR}/vcd.mpg"
@@ -301,4 +304,71 @@ frame_rate_is() {
   [[ "${status}" -eq 0 ]]
   [[ "${output}" != *"pulldown"* ]]
   frame_rate_is "${OUT}/film_disc1.mpg" 30000/1001
+}
+
+field_order_is() {
+  local order
+  order="$("${YAKITSUKE_TEST_FFMPEG%/ffmpeg}/ffprobe" -v error -select_streams v:0 -show_entries stream=field_order -of csv=p=0 "$1")"
+  [[ "${order%,}" == "$2" ]]
+}
+
+@test "ffmpeg keeps the fields of a top-field-first 576i source on PAL SVCD" {
+  # Arrange
+  local clip="${CLIPS}/tff576.mp4"
+
+  # Act
+  run yk_test_run --format svcd --encoder ffmpeg --keep-mpeg --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"        fields kept interlaced, tff first, no denoise or sharpening"* ]]
+  field_order_is "${OUT}/tff576_disc1.mpg" tt
+}
+
+@test "mpeg2enc keeps the fields of a bottom-field-first 576i source on PAL SVCD" {
+  # Arrange
+  local clip="${CLIPS}/bff576.mp4"
+
+  # Act
+  run yk_test_run --format svcd --encoder mpeg2enc --keep-mpeg --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"        fields kept interlaced, bff first"* ]]
+  field_order_is "${OUT}/bff576_disc1.mpg" bb
+}
+
+@test "an interlaced source that needs vertical scaling is deinterlaced on SVCD" {
+  # Arrange
+  local clip="${CLIPS}/tff480.mp4"
+
+  # Act
+  run yk_test_run --format svcd --pal --dry-run --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"        deinterlace on, denoise off"* ]]
+}
+
+@test "an interlaced source on Video CD is still deinterlaced" {
+  # Arrange
+  local clip="${CLIPS}/tff576.mp4"
+
+  # Act
+  run yk_test_run --dry-run --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"        deinterlace on, denoise off"* ]]
+}
+
+@test "kept fields scale line by line and skip sharpening and denoise" {
+  # Arrange
+  local expected="[0:v:0]fps=25,scale=470:576:interl=1:flags=lanczos+accurate_rnd+full_chroma_int,pad=480:576:4:0:color=black,format=yuv420p,setfield=bff,setsar=1[v]"
+
+  # Act
+  YK_FORMAT=svcd YK_FIELD_MODE=keep YK_FIELD_ORDER=bff YK_DENOISE=1.5 YK_SRC_W=720 YK_SRC_H=576 YK_PIC_W=1440 YK_PIC_H=1080 run yk_test_call call_graph
+
+  # Assert
+  [[ "${output}" == "${expected}" ]]
 }

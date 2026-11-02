@@ -38,7 +38,7 @@ teardown() {
   [[ "${output}" == "off" ]]
 }
 
-@test "an interlaced video source is deinterlaced" {
+@test "an interlaced video source is found with its field order" {
   # Arrange
   local clip="${BATS_FILE_TMPDIR}/interlaced.mp4"
 
@@ -46,7 +46,7 @@ teardown() {
   run yk_test_call call_detect yk_detect_field_mode "${clip}"
 
   # Assert
-  [[ "${output}" == "on" ]]
+  [[ "${output}" == "on tff" ]]
 }
 
 @test "telecined film is recovered with inverse telecine" {

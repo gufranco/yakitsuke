@@ -36,6 +36,7 @@ export LC_ALL
 : "${YK_SVCD_MAX_KBPS:=2450}"
 : "${YK_FIT_RETRIES:=3}"
 : "${YK_PULLDOWN:=no}"
+: "${YK_FIELD_ORDER:=}"
 : "${YK_BORDERS:=auto}"
 : "${YK_DEINTERLACE:=auto}"
 : "${YK_DENOISE:=off}"

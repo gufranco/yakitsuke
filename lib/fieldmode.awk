@@ -20,6 +20,6 @@ END {
   if (frames > 0 && repeats / frames > 0.25) { print "ivtc"; exit }
   dominant = (tff > bff) ? tff : bff
   weak = (tff > bff) ? bff : tff
-  if (dominant > prog && dominant > weak * 3) { print "on"; exit }
+  if (dominant > prog && dominant > weak * 3) { print "on " ((tff > bff) ? "tff" : "bff"); exit }
   print "off"
 }

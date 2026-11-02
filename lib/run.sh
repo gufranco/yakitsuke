@@ -74,12 +74,23 @@ yk_run_probe() {
   [ -n "${yk_pr_audio}" ] || YK_HAS_AUDIO=no
 }
 
+yk_run_fields() {
+  yk_rfd_found="$(yk_detect_field_mode "${YK_INPUT}")"
+  YK_FIELD_MODE="${yk_rfd_found%% *}"
+  YK_FIELD_ORDER=""
+  [ "${yk_rfd_found}" = "${YK_FIELD_MODE}" ] || YK_FIELD_ORDER="${yk_rfd_found#* }"
+  [ "${YK_FORMAT:-vcd}" = svcd ] && [ "${YK_FIELD_MODE}" = on ] || return 0
+  [ "${YK_SRC_H}" -eq "${YK_RASTER_H}" ] && [ "${YK_ACTIVE_H}" -eq "${YK_SRC_H}" ] || return 0
+  [ "${YK_INNER_H}" -eq "${YK_RASTER_H}" ] && [ "${YK_SPEED}" = 1 ] || return 0
+  YK_FIELD_MODE=keep
+}
+
 yk_run_analyse() {
   yk_choose_standard
   yk_geometry "${YK_INPUT}"
   yk_inner_geometry
   YK_FIELD_MODE="${YK_DEINTERLACE}"
-  [ "${YK_DEINTERLACE}" = auto ] && YK_FIELD_MODE="$(yk_detect_field_mode "${YK_INPUT}")"
+  [ "${YK_DEINTERLACE}" = auto ] && yk_run_fields
   YK_MONOCHROME=no
   if [ "${YK_SUB_COLOR}" = auto ] && { [ -n "${YK_SUBTITLES}" ] || [ -n "${YK_SUB_TRACK}" ]; }; then
     YK_MONOCHROME="$(yk_detect_monochrome "${YK_INPUT}")"
@@ -128,7 +139,11 @@ yk_run_report() {
   yk_bordered && yk_info "        black bars stripped, active picture ${YK_ACTIVE_W}x${YK_ACTIVE_H} at +${YK_BORDER_X}+${YK_BORDER_Y}"
   yk_run_target
   yk_info "        picture ${YK_INNER_W}x${YK_INNER_H} at +${YK_RPAD_X}+${YK_RPAD_Y}, ${YK_FIT}"
-  yk_info "        deinterlace ${YK_FIELD_MODE}, denoise ${YK_DENOISE}, sharpen ${YK_SHARPEN}"
+  if [ "${YK_FIELD_MODE}" = keep ]; then
+    yk_info "        fields kept interlaced, ${YK_FIELD_ORDER} first, no denoise or sharpening"
+  else
+    yk_info "        deinterlace ${YK_FIELD_MODE}, denoise ${YK_DENOISE}, sharpen ${YK_SHARPEN}"
+  fi
   if [ "${YK_HAS_AUDIO}" = yes ]; then yk_info "        audio track ${YK_AUDIO_TRACK}"; else yk_info "        audio silent, the source has none"; fi
   [ -z "${YK_TRACKS}" ] || printf '%s\n' "${YK_TRACKS}" | while IFS= read -r yk_rr_line; do yk_info "        ${yk_rr_line}"; done
   if [ -n "${YK_SUB_MASTER}" ]; then
