@@ -38,7 +38,7 @@ A new member also needs, in the same task:
 4. In the tap, `Formula/<tool>.rb`, written once the first release tag exists, and the tool's row in each of the tap's four READMEs.
 5. Its name in the `for member in` loop above, in every member.
 
-A member that replaces a script in the owner's dotfiles, such as a zsh module, removes that script and its `source` line in the same task, and the dotfiles install the member instead: the Brewfile on macOS, and on Linux `install.sh`, which clones the member and runs `make install`.
+A member that replaces a script in the owner's dotfiles, such as a zsh module, removes that script and its `source` line in the same task, and the dotfiles install the member instead through their Brewfile, since the dotfiles support macOS only.
 
 A rule the owner sets for any member is written here and applied to every member, so they keep one style and one standard of quality. A rule that needs changing is changed in every member in the same task. The family is also the owner's reference standard: another of his projects that is refactored adopts these rules wherever they apply.
 
