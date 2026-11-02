@@ -29,7 +29,8 @@ disc:
 picture:
   --ntsc | --pal | --film    force 29.97, 25 or 23.976 fps (default: from the
                              source; 24 fps film stays film, never duplicated)
-  --letterbox | --crop       fit the whole frame with bars (default), or fill it
+  --crop | --letterbox       fill the frame, cutting what spills over the
+                             sides (default), or keep the whole frame with bars
   --borders auto|off         strip baked-in black bars first (default auto)
   --deinterlace MODE         auto, on, ivtc or off (default auto)
   --denoise SIGMA            fftdnoiz sigma, e.g. 1.5 (default off)

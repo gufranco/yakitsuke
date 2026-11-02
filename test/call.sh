@@ -65,6 +65,7 @@ call_graph() {
   [ "${YK_SRC_H}" != 0 ] || YK_SRC_H=1080
   [ "${YK_ACTIVE_W}" != 0 ] || YK_ACTIVE_W="${YK_SRC_W}"
   [ "${YK_ACTIVE_H}" != 0 ] || YK_ACTIVE_H="${YK_SRC_H}"
+  [ "${YK_CROP_W}" != 0 ] || YK_FIT=letterbox
   YK_STANDARD="${YK_STANDARD:-pal}"
   yk_standard_params
   yk_inner_geometry

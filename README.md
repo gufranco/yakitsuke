@@ -31,7 +31,7 @@ Source: trailer.mp4
         1920x1080, 2.400 display aspect, 0:00:20
         black bars stripped, active picture 1920x800 at +0+140
 Target: FILM Video CD, 352x240 at 24000/1001 fps
-        picture 352x134 at +0+52, letterbox
+        picture 352x240 at +0+0, crop
         deinterlace off, denoise off, sharpen yes
         audio track 0
         audio 0: aac, 1ch, und
@@ -39,12 +39,13 @@ Target: FILM Video CD, 352x240 at 24000/1001 fps
 Media:  80 min, 360000 sectors, 4784.000s usable per disc
 Plan:   1 disc(s), 30s overlap, mpeg2enc
 
-Disc 1 of 1, encoding 20.020s from 0.000s
-Disc 1 of 1, encoding  18%  7.4x  0m02s left
-Disc 1 of 1, encoding  41%  5.5x  0m02s left
-Disc 1 of 1, encoding  62%  5.0x  0m01s left
-Disc 1 of 1, encoding  84%  4.7x  0m00s left
-Disc 1 of 1, encoding 100%  4.2x  0m00s left
+Disc 1 of 1, encoding 20.000s from 0.000s
+Disc 1 of 1, encoding  17%  7.0x  0m02s left
+Disc 1 of 1, encoding  44%  4.4x  0m02s left
+Disc 1 of 1, encoding  64%  4.3x  0m01s left
+Disc 1 of 1, encoding  85%  4.2x  0m00s left
+Disc 1 of 1, encoding  93%  4.1x  0m00s left
+Disc 1 of 1, encoding 100%  3.9x  0m00s left
 Disc 1 of 1: trailer_disc1.bin, 2187 of 360000 sectors, 0% full
 Wrote 1 Video CD image(s) to ~/Movies.
 ```
@@ -112,7 +113,7 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 | `--scene-snap SECONDS` | Move each seam and chapter mark onto the nearest scene change |
 | `--chapters MINUTES` | An entry point every few minutes, 5 by default |
 | `--ntsc`, `--pal`, `--film` | Force 29.97, 25 or 23.976 fps |
-| `--letterbox`, `--crop` | Keep the whole frame with bars, or fill the screen |
+| `--crop`, `--letterbox` | Fill the screen, cutting the sides of a wider source, the default; or keep the whole frame with bars |
 | `--sub-color auto\|white\|yellow` | Subtitle colour |
 | `--sub-box auto\|always\|never` | Background box behind subtitles |
 | `--sub-track N`, `--sub-offset SECONDS` | Burn an embedded track, shift every line |

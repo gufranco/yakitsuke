@@ -20,7 +20,7 @@ export LC_ALL
 : "${YK_SCENE_SNAP:=15}"
 : "${YK_TITLE:=}"
 : "${YK_CHAPTERS:=5}"
-: "${YK_FIT:=letterbox}"
+: "${YK_FIT:=crop}"
 : "${YK_BORDERS:=auto}"
 : "${YK_DEINTERLACE:=auto}"
 : "${YK_DENOISE:=off}"

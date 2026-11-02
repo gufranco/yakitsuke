@@ -2,7 +2,7 @@
 Source: long.mp4
         160x120, 1.333 display aspect, 0:00:50
 Target: PAL Video CD, 352x288 at 25 fps
-        picture 352x288 at +0+0, letterbox
+        picture 352x288 at +0+0, crop
         deinterlace off, denoise off, sharpen yes
         audio track 0
         audio 0: aac, 1ch, und

@@ -62,12 +62,12 @@ yk_styles() {
   [[ "${styles}" == "Outline=2 " ]]
 }
 
-@test "lines that sit in a letterbox bar are not measured and get an outline" {
+@test "with --letterbox, lines that sit in a bar are not measured and get an outline" {
   # Arrange
   local clip="${BATS_FILE_TMPDIR}/wide.mp4"
 
   # Act
-  run yk_test_call call_subs "${clip}" "${BATS_FILE_TMPDIR}/two.srt"
+  YK_FIT=letterbox run yk_test_call call_subs "${clip}" "${BATS_FILE_TMPDIR}/two.srt"
 
   # Assert
   local styles
