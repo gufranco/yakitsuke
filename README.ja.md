@@ -2,7 +2,7 @@
 
 <h1>yakitsuke</h1>
 
-<strong>あらゆる動画をビデオ CD イメージに変換し、複数のディスクに分割します。字幕はどんな映像の上でも読みやすく保たれます。</strong>
+<strong>あらゆる動画をビデオ CD またはスーパービデオ CD のイメージに変換し、複数のディスクに分割します。字幕はどんな映像の上でも読みやすく保たれます。</strong>
 
 [English](README.md) | 日本語 | [简体中文](README.zh-Hans.md) | [繁體中文 (香港)](README.zh-HK.md)
 
@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは一つ、テストは 163 件、シェルモジュールは 11 個。POSIX システムと、操作する映像ツール以外に実行時の依存はありません。`yakitsuke` は「焼き付け」です。映画を CD に焼き、字幕を映像に焼き付けます。姉妹ツールの [kakikomi](https://github.com/gufranco/kakikomi) と [kiyome](https://github.com/gufranco/kiyome) はディスクの書き込みと消去を行います。
+コマンドは一つ、テストは 203 件、シェルモジュールは 11 個。POSIX システムと、操作する映像ツール以外に実行時の依存はありません。`yakitsuke` は「焼き付け」です。映画を CD に焼き、字幕を映像に焼き付けます。姉妹ツールの [kakikomi](https://github.com/gufranco/kakikomi) と [kiyome](https://github.com/gufranco/kiyome) はディスクの書き込みと消去を行います。
 
 ---
 
@@ -59,7 +59,7 @@ Wrote 1 Video CD image(s) to ~/Movies.
 | ツール | 用途 | インストール |
 |:-----|:----|:--------|
 | libass と zimg を含む `ffmpeg` | デコード、フィルタ、字幕、16 ビット色変換 | `brew install ffmpeg-full`、または `apt install ffmpeg` |
-| `vcdimager` | VCD 2.0 の BIN/CUE イメージを作成 | `brew install vcdimager`、または `apt install vcdimager` |
+| `vcdimager` | VCD 2.0 または SVCD 1.0 の BIN/CUE イメージを作成 | `brew install vcdimager`、または `apt install vcdimager` |
 | `mjpegtools` | より高画質な MPEG-1 エンコーダの `mpeg2enc` と `mplex` | `brew install mjpegtools`、または `apt install mjpegtools` |
 
 `mjpegtools` がない場合は ffmpeg のエンコーダに切り替え、その旨を表示します。`yakitsuke doctor` でインストール状況を確認できます。
@@ -108,6 +108,8 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 
 | オプション | 効果 |
 |:-------|:-------|
+| `--format vcd\|svcd` | 既定のビデオ CD、またはスーパービデオ CD。より鮮明な MPEG-2 で、1 枚あたり約 48 分 |
+| `--aspect auto\|4:3\|16:9` | スーパービデオ CD の画面比。`auto` は 1.55:1 以上の素材に 16:9 を選ぶ |
 | `--cd74`、`--cd80`、`--cd90`、`--disc-minutes N` | メディアの容量。既定は 80 分 |
 | `--overlap SECONDS` | ディスクの継ぎ目で重複させる秒数。既定は 30 |
 | `--scene-snap SECONDS` | 継ぎ目とチャプターを最も近いシーンチェンジへ移動 |
@@ -124,11 +126,12 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 ```bash
 yakitsuke movie.mkv movie.srt                  # フィルムはフィルムのまま、字幕は行ごとに調整
 yakitsuke --cd74 --pal movie.mkv               # フィルムから PAL: 4% 速め、音程は維持
+yakitsuke --format svcd movie.mkv movie.srt    # スーパービデオ CD、横長の映画は 16:9
 yakitsuke --preview 30 movie.mkv movie.srt     # まず 30 秒で見た目を確認
 yakitsuke --resume movie.mkv movie.srt         # 中断した処理を完了
 ```
 
-`--overlap=10` の形も使え、`--` でオプションが終わります。yakitsuke はファミリー共通のコマンドライン規約に従います。内容は [FAMILY.md](FAMILY.md) にあります。
+`--overlap=10` の形も使え、`--` でオプションが終わります。yakitsuke はファミリー共通のコマンドライン規約に従います。内容は [FAMILY.md](FAMILY.md) にあります。`YAKITSUKE_FORMAT=svcd` でスーパービデオ CD が既定になります。
 
 <a id="picture"></a>
 
@@ -138,7 +141,7 @@ yakitsuke --resume movie.mkv movie.srt         # 中断した処理を完了
 
 | 段階 | 選択 | 理由 |
 |:------|:-------|:----|
-| エンコーダ | TMPGEnc の量子化マトリクスを使う `mpeg2enc` | ffmpeg のエンコーダとの差はマトリクスが生む。TMPGEnc は VCD の基準となったエンコーダ |
+| ビデオ CD のエンコーダ | TMPGEnc の量子化マトリクスを使う `mpeg2enc` | ffmpeg のエンコーダとの差はマトリクスが生む。TMPGEnc は VCD の基準となったエンコーダ |
 | 単位係数の除去 | `-E -10` | VMAF +0.97、PSNR +0.27 dB、20 本すべてで向上 |
 | フィルム | 23.976 fps の NTSC Film。29.97 への複製はしない | 同じフレームで VMAF +7.6、ジャダーなし |
 | フィルムから PAL | 音程を保った 4% の速度アップ | 毎秒フレームを複製する代わりの、PAL の慣習 |
@@ -146,8 +149,12 @@ yakitsuke --resume movie.mkv movie.srt         # 中断した処理を完了
 | スケーリング | 16 ビットの Lanczos、BT.601、誤差拡散ディザ | 再量子化は最後の一回だけ |
 | シャープ化 | 縮小後、黒帯を付ける前に弱いアンシャープ | リンギングが黒帯の境に届かない |
 | 黒帯 | 最初に検出して除去 | 焼き込まれた枠にビットを使わない |
+| スーパービデオ CD のエンコーダ | ffmpeg。NTSC のフィルムだけは別 | 同じサイズで `mpeg2enc` より VMAF 2 から 4.4 高い。フィルムでは `mpeg2enc` が 23.976 fps と 3:2 プルダウンフラグを保ち、最大 VMAF +1.4、ジャダーなし |
+| スーパービデオ CD のレート | ディスクが埋まるまで 1 枚ごとに上げ、ピークは 2516 kbit/s のまま | `mpeg2enc -q 1` は目標レートの 1.3% 以内に収まり、`-t` だけより VMAF +2.6 から +3.9 |
+| スーパービデオ CD の画面比 | 1.55:1 以上の素材は 16:9。有効な 704 サンプルを 480 のうち 470 に収める | 円のテストパターンが BT.601 のプレーヤーで 1.004:1 になる |
+| インターレース素材 | 高さの拡縮が不要ならスーパービデオ CD ではフィールドを保ち、1 フィールドずつシャープ化 | デインターレースより VMAF +7.2、どのフィールドの動きも残る |
 
-成功を報告する前に、すべてのストリームはビデオ CD 規格への適合を、すべてのイメージはメディア容量を確認します。
+成功を報告する前に、すべてのストリームはビデオ CD またはスーパービデオ CD 規格への適合を、すべてのイメージはメディア容量を確認します。
 
 <a id="subtitles"></a>
 

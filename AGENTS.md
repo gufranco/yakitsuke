@@ -35,6 +35,11 @@ Guidance for anyone, human or agent, changing yakitsuke. What yakitsuke is and h
 - Tests encode real clips that ffmpeg generates, through real `mpeg2enc` and `vcdxbuild`.
 - Homebrew's plain `ffmpeg` has neither libass nor libsoxr. Without libsoxr, yakitsuke resamples with ffmpeg's own engine; without libass it refuses to burn subtitles and names `ffmpeg-full`. Tests that burn subtitles carry `# bats test_tags=libass`, and the macOS leg that installs plain `ffmpeg` runs the suite with `--filter-tags '!libass'`.
 - Each disc's image is built in a hidden staging folder inside the output folder, then moved into place, so `--resume` never finds half an image. The cue sheet names its image without a folder, so the pair can move together.
+- `yk_format_params` in [`lib/geometry.sh`](lib/geometry.sh) sets the raster, line width, codec, image class, GOP and frame rate of Super Video CD, and turns `--encoder auto` into ffmpeg for everything but NTSC film, as the VMAF measurements chose; the rest of the picture chain reads those variables.
+- A Super Video CD line carries the 704 active samples of BT.601 in 470 of its 480 samples, centred, as a Video CD line carries them in 352. A circle test pattern measured after a player's 480 to 720 upscale decides any change to that mapping.
+- Super Video CD keeps the 2516 kbit/s video peak and the 224 KiB buffer of IEC 62107; only the average moves, between `YK_SVCD_REF_KBPS` and `YK_SVCD_MAX_KBPS`, to fill each disc.
+- Standard SVCD in `mpeg2enc`, `-f 4`, writes no repeat-field flags, so 23.976 fps film is coded as user SVCD, `-f 5 -p`. ffmpeg's encoder has no soft pulldown and duplicates to 29.97 instead.
+- Super Video CD subtitles stay burned in, because the only encoder for its OGT subtitle stream is a proof of concept.
 
 ## Release
 

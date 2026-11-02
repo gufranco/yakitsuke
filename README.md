@@ -2,7 +2,7 @@
 
 <h1>yakitsuke</h1>
 
-<strong>Turn any video into Video CD images, split across discs, with subtitles that stay readable on any picture.</strong>
+<strong>Turn any video into Video CD or Super Video CD images, split across discs, with subtitles that stay readable on any picture.</strong>
 
 English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁體中文 (香港)](README.zh-HK.md)
 
@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 163 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
+One command, 203 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
 
 ---
 
@@ -59,7 +59,7 @@ Wrote 1 Video CD image(s) to ~/Movies.
 | Tool | Why | Install |
 |:-----|:----|:--------|
 | `ffmpeg` with libass and zimg | Decoding, filtering, subtitles, 16-bit colour conversion | `brew install ffmpeg-full`, or `apt install ffmpeg` |
-| `vcdimager` | Writes the VCD 2.0 BIN/CUE image | `brew install vcdimager`, or `apt install vcdimager` |
+| `vcdimager` | Writes the VCD 2.0 or SVCD 1.0 BIN/CUE image | `brew install vcdimager`, or `apt install vcdimager` |
 | `mjpegtools` | `mpeg2enc` and `mplex`, the better MPEG-1 encoder | `brew install mjpegtools`, or `apt install mjpegtools` |
 
 Without `mjpegtools` the run falls back to ffmpeg's encoder and says so. `yakitsuke doctor` lists what is installed.
@@ -108,6 +108,8 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 
 | Option | Effect |
 |:-------|:-------|
+| `--format vcd\|svcd` | Video CD, the default, or Super Video CD: sharper MPEG-2, about 48 minutes per disc |
+| `--aspect auto\|4:3\|16:9` | Super Video CD shape; `auto` picks 16:9 for a source 1.55:1 or wider |
 | `--cd74`, `--cd80`, `--cd90`, `--disc-minutes N` | Media size, 80 minutes by default |
 | `--overlap SECONDS` | Footage repeated at each disc seam, 30 by default |
 | `--scene-snap SECONDS` | Move each seam and chapter mark onto the nearest scene change |
@@ -124,11 +126,12 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 ```bash
 yakitsuke movie.mkv movie.srt                  # film stays film, subtitles adapt per line
 yakitsuke --cd74 --pal movie.mkv               # PAL from film: sped up 4%, pitch kept
+yakitsuke --format svcd movie.mkv movie.srt    # Super Video CD, 16:9 for a wide film
 yakitsuke --preview 30 movie.mkv movie.srt     # check the look on 30 seconds first
 yakitsuke --resume movie.mkv movie.srt         # finish an interrupted run
 ```
 
-`--overlap=10` works too, and `--` ends the options. yakitsuke follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
+`--overlap=10` works too, and `--` ends the options. `YAKITSUKE_FORMAT=svcd` makes Super Video CD the default. yakitsuke follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
 
 <a id="picture"></a>
 
@@ -138,7 +141,7 @@ Every choice below was measured with VMAF, scaled to display size the way the me
 
 | Stage | Choice | Why |
 |:------|:-------|:----|
-| Encoder | `mpeg2enc` with the TMPGEnc matrices | The matrices carry the gain over ffmpeg's encoder; TMPGEnc was the reference VCD encoder |
+| Video CD encoder | `mpeg2enc` with the TMPGEnc matrices | The matrices carry the gain over ffmpeg's encoder; TMPGEnc was the reference VCD encoder |
 | Unit coefficient elimination | `-E -10` | +0.97 VMAF, +0.27 dB PSNR, better on all 20 clips |
 | Film | 23.976 fps NTSC Film, never duplicated to 29.97 | +7.6 VMAF on the same frames, no judder |
 | Film to PAL | 4% speed-up with pitch kept | The PAL convention, instead of a duplicated frame every second |
@@ -146,8 +149,12 @@ Every choice below was measured with VMAF, scaled to display size the way the me
 | Scaling | Lanczos at 16 bits, BT.601, error-diffusion dither | One requantisation, at the end |
 | Sharpening | A mild unsharp after the downscale, before any bars | Ringing never reaches the bar edge |
 | Black bars | Detected and stripped first | No bits spent on baked-in borders |
+| Super Video CD encoder | ffmpeg, except NTSC film | 2 to 4.4 VMAF ahead of `mpeg2enc` at the same size; for film, `mpeg2enc` keeps 23.976 fps with 3:2 pulldown flags, up to +1.4 VMAF and no judder |
+| Super Video CD rate | Raised per disc until it fills, with the 2516 kbit/s peak kept | `mpeg2enc -q 1` lands within 1.3% of the rate, +2.6 to +3.9 VMAF over `-t` alone |
+| Super Video CD shape | 16:9 for a source 1.55:1 or wider, the 704 active samples in 470 of 480 | A circle test pattern comes out at 1.004:1 on a BT.601 player |
+| Interlaced sources | Fields kept on Super Video CD when the height needs no scaling, sharpened one field at a time | +7.2 VMAF over deinterlacing, and every field's motion survives |
 
-Every stream is checked for Video CD conformance and every image against the media size before the run reports success.
+Every stream is checked for Video CD or Super Video CD conformance and every image against the media size before the run reports success.
 
 <a id="subtitles"></a>
 

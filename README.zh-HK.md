@@ -2,7 +2,7 @@
 
 <h1>yakitsuke</h1>
 
-<strong>把任何影片轉成 VCD 映像，按需要分到多張光碟，字幕在任何畫面上都保持清楚易讀。</strong>
+<strong>把任何影片轉成 VCD 或 SVCD 映像，按需要分到多張光碟，字幕在任何畫面上都保持清楚易讀。</strong>
 
 [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | 繁體中文 (香港)
 
@@ -19,7 +19,7 @@
 
 </div>
 
-一條指令，163 個測試，11 個 shell 模組。除了 POSIX 系統和它調用的影片工具，執行時沒有其他依賴。`yakitsuke` 是日文「焼き付け」，意思是燒錄：把電影燒到光碟上，把字幕燒進畫面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 負責寫入和清除磁碟。
+一條指令，203 個測試，11 個 shell 模組。除了 POSIX 系統和它調用的影片工具，執行時沒有其他依賴。`yakitsuke` 是日文「焼き付け」，意思是燒錄：把電影燒到光碟上，把字幕燒進畫面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 負責寫入和清除磁碟。
 
 ---
 
@@ -59,7 +59,7 @@ Wrote 1 Video CD image(s) to ~/Movies.
 | 工具 | 用途 | 安裝 |
 |:-----|:----|:--------|
 | 包含 libass 和 zimg 的 `ffmpeg` | 解碼、濾鏡、字幕、16 位元色彩轉換 | `brew install ffmpeg-full`，或 `apt install ffmpeg` |
-| `vcdimager` | 製作 VCD 2.0 的 BIN/CUE 映像 | `brew install vcdimager`，或 `apt install vcdimager` |
+| `vcdimager` | 製作 VCD 2.0 或 SVCD 1.0 的 BIN/CUE 映像 | `brew install vcdimager`，或 `apt install vcdimager` |
 | `mjpegtools` | 較佳的 MPEG-1 編碼器 `mpeg2enc` 和 `mplex` | `brew install mjpegtools`，或 `apt install mjpegtools` |
 
 沒有 `mjpegtools` 時會改用 ffmpeg 的編碼器，並會提示。`yakitsuke doctor` 會列出已安裝的工具。
@@ -108,6 +108,8 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 
 | 選項 | 效果 |
 |:-------|:-------|
+| `--format vcd\|svcd` | 預設 VCD，或 SVCD：更清晰的 MPEG-2，每張光碟約 48 分鐘 |
+| `--aspect auto\|4:3\|16:9` | SVCD 的畫面比例；`auto` 對 1.55:1 或更闊的片源選 16:9 |
 | `--cd74`、`--cd80`、`--cd90`、`--disc-minutes N` | 光碟容量，預設 80 分鐘 |
 | `--overlap SECONDS` | 每個光碟銜接處重複的秒數，預設 30 |
 | `--scene-snap SECONDS` | 把銜接點和章節點移到最近的場景切換 |
@@ -124,11 +126,12 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 ```bash
 yakitsuke movie.mkv movie.srt                  # 菲林保持菲林幀率，字幕逐行適配
 yakitsuke --cd74 --pal movie.mkv               # 菲林轉 PAL：加速 4%，音調不變
+yakitsuke --format svcd movie.mkv movie.srt    # SVCD，闊銀幕電影用 16:9
 yakitsuke --preview 30 movie.mkv movie.srt     # 先用 30 秒檢查效果
 yakitsuke --resume movie.mkv movie.srt         # 完成被中斷的工作
 ```
 
-也可以寫成 `--overlap=10`，`--` 表示選項結束。yakitsuke 遵循同系列工具共用的命令列約定，詳見 [FAMILY.md](FAMILY.md)。
+也可以寫成 `--overlap=10`，`--` 表示選項結束。yakitsuke 遵循同系列工具共用的命令列約定，詳見 [FAMILY.md](FAMILY.md)。設定 `YAKITSUKE_FORMAT=svcd` 後預設製作 SVCD。
 
 <a id="picture"></a>
 
@@ -138,7 +141,7 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中斷的工作
 
 | 環節 | 選擇 | 原因 |
 |:------|:-------|:----|
-| 編碼器 | 使用 TMPGEnc 量化矩陣的 `mpeg2enc` | 相對 ffmpeg 編碼器的優勢來自矩陣；TMPGEnc 曾是 VCD 的標竿編碼器 |
+| VCD 編碼器 | 使用 TMPGEnc 量化矩陣的 `mpeg2enc` | 相對 ffmpeg 編碼器的優勢來自矩陣；TMPGEnc 曾是 VCD 的標竿編碼器 |
 | 單位係數消除 | `-E -10` | VMAF +0.97、PSNR +0.27 dB，20 段全部提升 |
 | 菲林 | 23.976 fps 的 NTSC Film，絕不複製到 29.97 | 同樣的幀 VMAF +7.6，沒有抖動 |
 | 菲林轉 PAL | 加速 4% 並保持音調 | PAL 的慣例，取代每秒複製一幀 |
@@ -146,8 +149,12 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中斷的工作
 | 縮放 | 16 位元 Lanczos、BT.601、誤差擴散抖動 | 只在最後量化一次 |
 | 銳化 | 縮小後、加黑邊前做輕微銳化 | 振鈴不會延伸到黑邊邊緣 |
 | 黑邊 | 先偵測並去除 | 不把碼率浪費在燒進去的邊框上 |
+| SVCD 編碼器 | ffmpeg，NTSC 菲林除外 | 同樣大小下比 `mpeg2enc` 高 2 至 4.4 VMAF；菲林由 `mpeg2enc` 保持 23.976 fps 和 3:2 下拉標記，VMAF 最多 +1.4，沒有抖動 |
+| SVCD 碼率 | 每張光碟逐張提高至剛好放滿，峰值保持 2516 kbit/s | `mpeg2enc -q 1` 與目標碼率相差 1.3% 以內，比只用 `-t` 高 2.6 至 3.9 VMAF |
+| SVCD 畫面比例 | 1.55:1 或更闊的片源用 16:9，有效的 704 個取樣放進 480 中的 470 | 圓形測試圖在 BT.601 播放器上顯示為 1.004:1 |
+| 隔行片源 | 高度無需縮放時 SVCD 保留場，並逐場銳化 | 比去隔行高 7.2 VMAF，每一場的動態都保留下來 |
 
-回報成功之前，每條碼流都會檢查是否符合 VCD 規範，每個映像都會檢查是否放得進光碟。
+回報成功之前，每條碼流都會檢查是否符合 VCD 或 SVCD 規範，每個映像都會檢查是否放得進光碟。
 
 <a id="subtitles"></a>
 
