@@ -103,15 +103,27 @@ yk_flavor_version() {
   }'
 }
 
+yk_tool_line() {
+  yk_tl_line="$(printf '%s\n' "$1" | awk '/BusyBox|This is not GNU/ { print; exit }')"
+  if [ -z "${yk_tl_line}" ]; then
+    yk_tl_line="$(printf '%s\n' "$1" | sed -n '1p')"
+  fi
+  printf '%s\n' "${yk_tl_line}"
+}
+
 yk_tool_flavor() {
   yk_tf_raw="$("$1" --version 2>&1 </dev/null)" || true
-  yk_tf_text="$(printf '%s\n' "${yk_tf_raw}" | sed -n '1p')"
+  yk_tf_text="$(yk_tool_line "${yk_tf_raw}")"
   yk_tf_version="$(yk_flavor_version "${yk_tf_text}")"
   yk_tf_os="${YAKITSUKE_OS:-}"
   [ -n "${yk_tf_os}" ] || yk_tf_os="$(uname -s)"
   case "${yk_tf_text}" in
   *uutils*) yk_tf_name=uutils ;;
   *BusyBox*) yk_tf_name=busybox ;;
+  *"This is not GNU"*)
+    yk_tf_name=busybox
+    yk_tf_version=""
+    ;;
   *GNU* | *GLIBC* | *"(coreutils)"* | *"(diffutils)"*) yk_tf_name=gnu ;;
   *mawk*) yk_tf_name=mawk ;;
   *"awk version"* | *"(Darwin)"*) yk_tf_name=bsd ;;
