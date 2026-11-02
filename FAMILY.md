@@ -15,6 +15,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 | jimaku | Downloads subtitles for videos and saves them as UTF-8 | [gufranco/jimaku](https://github.com/gufranco/jimaku) |
 | kakikomi | Writes a disk image to removable media, verified chunk by chunk, never mounted | [gufranco/kakikomi](https://github.com/gufranco/kakikomi) |
 | katazuke | Clears the junk other systems leave on a FAT or exFAT disk, then sorts its folders | [gufranco/katazuke](https://github.com/gufranco/katazuke) |
+| kiban | Runs Docker and the local databases a project needs, in a native VM on a Mac and with no VM on Linux | [gufranco/kiban](https://github.com/gufranco/kiban) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
 | shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
 | yakitsuke | Turns any video into Video CD images, split across discs, with readable subtitles | [gufranco/yakitsuke](https://github.com/gufranco/yakitsuke) |
@@ -24,7 +25,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 Copy this file in unchanged, write an `AGENTS.md` with the same headings as the other members', follow both, and add the repository to the table above in every member in the same task. With the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho jimaku kakikomi katazuke kiyome shiwake yakitsuke; do
+for member in fusho jimaku kakikomi katazuke kiban kiyome shiwake yakitsuke; do
   cmp FAMILY.md "../${member}/FAMILY.md"
 done
 ```
