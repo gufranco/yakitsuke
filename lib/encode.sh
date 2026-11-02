@@ -4,11 +4,11 @@
 . "${YK_LIB:?}/state.sh"
 
 yk_inner_geometry() {
-  yk_ig_box="$(awk -v pw="${YK_PIC_W}" -v ph="${YK_PIC_H}" -v cw="${YK_CANVAS_W}" -v ch="${YK_CANVAS_H}" -v rh="${YK_RASTER_H}" '
+  yk_ig_box="$(awk -v pw="${YK_PIC_W}" -v ph="${YK_PIC_H}" -v cw="${YK_CANVAS_W}" -v ch="${YK_CANVAS_H}" -v rh="${YK_RASTER_H}" -v lw="${YK_LINE_W}" -v rw="${YK_RASTER_W}" '
     function even(v) { v = int(v / 2 + 0.5) * 2; return (v < 2 ? 2 : v) }
     BEGIN {
-      w = even(352 * pw / cw); h = even(rh * ph / ch)
-      printf "%d %d %d %d\n", w, h, int((352 - w) / 4) * 2, int((rh - h) / 4) * 2
+      w = even(lw * pw / cw); h = even(rh * ph / ch)
+      printf "%d %d %d %d\n", w, h, int((rw - w) / 4) * 2, int((rh - h) / 4) * 2
     }')"
   read -r YK_INNER_W YK_INNER_H YK_RPAD_X YK_RPAD_Y <<EOF
 ${yk_ig_box}
@@ -55,8 +55,8 @@ yk_video_scale() {
     printf 'zscale=t=bt709:m=%s:p=%s:r=tv\n' "${YK_MATRIX_OUT}" "${YK_MATRIX_OUT}"
   fi
   [ "${YK_SHARPEN}" = no ] || printf 'unsharp=5:5:0.4:5:5:0.0\n'
-  if [ "${YK_INNER_W}" -ne 352 ] || [ "${YK_INNER_H}" -ne "${YK_RASTER_H}" ]; then
-    printf 'pad=352:%s:%s:%s:color=black\n' "${YK_RASTER_H}" "${YK_RPAD_X}" "${YK_RPAD_Y}"
+  if [ "${YK_INNER_W}" -ne "${YK_RASTER_W}" ] || [ "${YK_INNER_H}" -ne "${YK_RASTER_H}" ]; then
+    printf 'pad=%s:%s:%s:%s:color=black\n' "${YK_RASTER_W}" "${YK_RASTER_H}" "${YK_RPAD_X}" "${YK_RPAD_Y}"
   fi
 }
 
@@ -68,8 +68,12 @@ yk_video_finish() {
 yk_subtitle_layer() {
   yk_sl_style=""
   [ -z "${YK_SUB_STYLE}" ] || yk_sl_style=":force_style='${YK_SUB_STYLE}'"
-  printf 'color=c=black@0:s=%sx%s:r=%s:d=%s,format=rgba,subtitles=filename=subtitles.ass:fontsdir=fonts:alpha=1%s,scale=352:%s:flags=lanczos,format=yuva444p' \
-    "${YK_CANVAS_W}" "${YK_CANVAS_H}" "${YK_FPS}" "$1" "${yk_sl_style}" "${YK_RASTER_H}"
+  yk_sl_pad=""
+  if [ "${YK_LINE_W}" -ne "${YK_RASTER_W}" ]; then
+    yk_sl_pad=",pad=${YK_RASTER_W}:${YK_RASTER_H}:$(((YK_RASTER_W - YK_LINE_W) / 2)):0:color=black@0"
+  fi
+  printf 'color=c=black@0:s=%sx%s:r=%s:d=%s,format=rgba,subtitles=filename=subtitles.ass:fontsdir=fonts:alpha=1%s,scale=%s:%s:flags=lanczos%s,format=yuva444p' \
+    "${YK_CANVAS_W}" "${YK_CANVAS_H}" "${YK_FPS}" "$1" "${yk_sl_style}" "${YK_LINE_W}" "${YK_RASTER_H}" "${yk_sl_pad}"
 }
 
 yk_filter_graph() {
@@ -125,6 +129,11 @@ yk_ffmpeg_disc() {
   if [ "${yk_fd_mode}" = y4m ]; then
     set -- "$@" -f yuv4mpegpipe -strict -1 - -map "${yk_fd_map}" -af "${YK_AUDIO_FILTER}" \
       -c:a mp2 -b:a 224k -ar 44100 -ac 2 -f mp2 audio.mp2
+  elif [ "${YK_FORMAT:-vcd}" = svcd ]; then
+    set -- "$@" -map "${yk_fd_map}" -af "${YK_AUDIO_FILTER}" -c:v mpeg2video -b:v "${YK_VIDEO_KBPS}k" -minrate 0 \
+      -maxrate 2516k -bufsize 1835008 -g "${YK_GOP}" -bf 2 -mbd rd -cmp satd -subcmp satd -trellis 2 -dia_size 3 \
+      -mpv_flags +naq+qp_rd+cbp_rd -scan_offset 1 -aspect "${YK_DISPLAY}" -pix_fmt yuv420p -c:a mp2 -b:a 224k \
+      -ar 44100 -ac 2 -f svcd -packetsize 2324 "${yk_fd_out}"
   else
     set -- "$@" -map "${yk_fd_map}" -af "${YK_AUDIO_FILTER}" -c:v mpeg1video -b:v 1150k -minrate 1150k \
       -maxrate 1150k -bufsize 327680 -g "${YK_GOP}" -bf 2 -mbd rd -cmp satd -subcmp satd -trellis 2 -dia_size 3 \
@@ -134,18 +143,35 @@ yk_ffmpeg_disc() {
   "${YK_FFMPEG}" "$@"
 }
 
+yk_mpeg2enc_profile() {
+  if [ "${YK_FORMAT:-vcd}" = svcd ]; then
+    yk_mp_aspect=2
+    [ "${YK_DISPLAY}" = 4:3 ] || yk_mp_aspect=3
+    printf '%s\n' "-f 4 -b 2516 -t ${YK_VIDEO_KBPS} -a ${yk_mp_aspect}"
+    return 0
+  fi
+  printf '%s\n' "-f 1 -b 1152 -a 2"
+}
+
 yk_encode_with_mpeg2enc() {
   rm -f "${YK_WORK}/ffmpeg.status"
+  yk_em_profile="$(yk_mpeg2enc_profile)"
+  yk_em_mux="-f 1"
+  [ "${YK_FORMAT:-vcd}" = vcd ] || yk_em_mux="-f 4 -V"
   (
     cd "${YK_WORK}" || exit 1
     {
       yk_ffmpeg_disc y4m "$1" "$2"
       printf '%s\n' "$?" >ffmpeg.status
-    } | mpeg2enc -v 0 -f 1 -b 1152 -a 2 -F "${YK_RATE_CODE}" -n "${YK_NORM}" -K tmpgenc -r 16 -4 1 -2 1 -E -10 -o video.m1v
+    } | {
+      # shellcheck disable=SC2086
+      mpeg2enc -v 0 ${yk_em_profile} -F "${YK_RATE_CODE}" -n "${YK_NORM}" -K tmpgenc -r 16 -4 1 -2 1 -E -10 -o video.m1v
+    }
   ) 2>"${YK_WORK}/encode.log" || return 1
   yk_em_status="$(cat "${YK_WORK}/ffmpeg.status" 2>/dev/null || true)"
   [ "${yk_em_status}" = 0 ] || return 1
-  if ! mplex -f 1 -o "$3" "${YK_WORK}/video.m1v" "${YK_WORK}/audio.mp2" 2>"${YK_WORK}/mplex.log"; then
+  # shellcheck disable=SC2086
+  if ! mplex ${yk_em_mux} -o "$3" "${YK_WORK}/video.m1v" "${YK_WORK}/audio.mp2" 2>"${YK_WORK}/mplex.log"; then
     if [ ! -s "$3" ]; then
       yk_error "mplex failed."
       yk_detail "${YK_WORK}/mplex.log"
@@ -242,9 +268,9 @@ yk_verify_stream() {
     return 1
   }
   yk_vs_found="$(yk_stream_signature "$1")"
-  yk_vs_expected="mpeg1video 352 ${YK_RASTER_H} mp2 44100 2"
+  yk_vs_expected="${YK_VIDEO_CODEC} ${YK_RASTER_W} ${YK_RASTER_H} mp2 44100 2"
   [ "${yk_vs_found}" = "${yk_vs_expected}" ] && return 0
-  yk_error "the stream is not Video CD conformant: $(basename -- "$1")"
+  yk_error "the stream is not ${YK_FORMAT_NAME} conformant: $(basename -- "$1")"
   yk_error "  expected: ${yk_vs_expected}"
   yk_error "  found:    ${yk_vs_found}"
   return 1

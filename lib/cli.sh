@@ -5,7 +5,7 @@
 
 yk_usage() {
   cat <<'USAGE'
-yakitsuke - burn any video onto VCD 2.0 BIN/CUE images, split across discs
+yakitsuke - burn any video onto Video CD or Super Video CD images
 
 usage:
   yakitsuke                  ask for the video and subtitles, step by step
@@ -17,6 +17,8 @@ usage:
   yakitsuke help             print this page
 
 disc:
+  --format vcd|svcd          Video CD 2.0 (default), or Super Video CD 1.0:
+                             sharper MPEG-2, about 48 minutes per 80-minute disc
   --cd74 | --cd80 | --cd90   74, 80 (default) or 90 minute media
   --disc-minutes N           explicit media length in minutes
   --overlap SECONDS          footage repeated at each disc seam (default 30)
@@ -31,6 +33,8 @@ picture:
                              source; 24 fps film stays film, never duplicated)
   --crop | --letterbox       fill the frame, cutting what spills over the
                              sides (default), or keep the whole frame with bars
+  --aspect auto|4:3|16:9     Super Video CD shape; auto picks 16:9 for a
+                             source 1.55:1 or wider (default auto)
   --borders auto|off         strip baked-in black bars first (default auto)
   --deinterlace MODE         auto, on, ivtc or off (default auto)
   --denoise SIGMA            fftdnoiz sigma, e.g. 1.5 (default off)
@@ -56,7 +60,7 @@ encoder and output:
   --encoder auto|mpeg2enc|ffmpeg
                              default auto: mpeg2enc when mjpegtools is installed
   --output-dir DIR           destination (default: next to the source)
-  --keep-mpeg                keep the MPEG-1 program streams
+  --keep-mpeg                keep the MPEG program streams
   --force                    overwrite existing images
   --resume                   keep discs that already exist and verify
   --preview SECONDS          encode one short sample from the middle
@@ -64,6 +68,7 @@ encoder and output:
   --json                     print the result as one JSON object, for scripts
 
 environment:
+  YAKITSUKE_FORMAT           vcd or svcd, the default for --format
   YAKITSUKE_FFMPEG           ffmpeg to use; otherwise the first build on PATH
                              with the filters the run needs
 

@@ -14,6 +14,8 @@ _yakitsuke() {
   fi
 
   _arguments \
+    '--format[Video CD or Super Video CD]:format:(vcd svcd)' \
+    '--aspect[Super Video CD shape]:aspect:(auto 4\:3 16\:9)' \
     '(--cd80 --cd90 --disc-minutes)--cd74[74 minute media]' \
     '(--cd74 --cd90 --disc-minutes)--cd80[80 minute media]' \
     '(--cd74 --cd80 --disc-minutes)--cd90[90 minute media]' \
@@ -40,9 +42,9 @@ _yakitsuke() {
     '--sub-box[subtitle background box]:mode:(auto always never)' \
     '--sub-offset[shift every subtitle]:seconds:' \
     '--sub-style[ASS style overrides]:spec:' \
-    '--encoder[MPEG-1 encoder]:encoder:(auto mpeg2enc ffmpeg)' \
+    '--encoder[MPEG encoder]:encoder:(auto mpeg2enc ffmpeg)' \
     '--output-dir[destination]:directory:_files -/' \
-    '--keep-mpeg[keep the MPEG-1 program streams]' \
+    '--keep-mpeg[keep the MPEG program streams]' \
     '(--resume)--force[overwrite existing images]' \
     '(--force)--resume[keep discs that already exist]' \
     '--preview[encode one short sample]:seconds:' \

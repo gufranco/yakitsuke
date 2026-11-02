@@ -89,7 +89,7 @@ yk_run_analyse() {
 
 yk_run_plan() {
   YK_CAPACITY=$((YK_DISC_MINUTES * 60 * 75))
-  YK_USABLE="$(awk -v c="${YK_CAPACITY}" 'BEGIN { printf "%.3f", (c - 1200) / 75 }')"
+  YK_USABLE="$(yk_usable_seconds)"
   yk_rp_length="$(yk_calc "${YK_DURATION} / ${YK_SPEED}")"
   if [ "${YK_PREVIEW}" -gt 0 ]; then
     YK_PLAN="$(yk_preview_plan "${yk_rp_length}" "${YK_PREVIEW}")"
@@ -109,6 +109,14 @@ yk_run_plan() {
   return 0
 }
 
+yk_run_target() {
+  yk_rta_name="$(printf '%s' "${YK_STANDARD}" | tr '[:lower:]' '[:upper:]')"
+  yk_info "Target: ${yk_rta_name} ${YK_FORMAT_NAME}, ${YK_RASTER_W}x${YK_RASTER_H} at ${YK_FPS} fps"
+  [ "${YK_SPEED}" = 1 ] || yk_info "        film sped up to 25 fps, ${YK_SPEED}x, pitch kept"
+  [ "${YK_FORMAT:-vcd}" = vcd ] && return 0
+  yk_info "        ${YK_DISPLAY}, video ${YK_VIDEO_KBPS} kbit/s average, 2516 kbit/s peak"
+}
+
 yk_run_report() {
   [ "${YK_JSON}" = no ] || return 0
   printf '\n'
@@ -117,9 +125,7 @@ yk_run_report() {
   yk_rr_clock="$(yk_clock "${YK_DURATION}")"
   yk_info "        ${YK_SRC_W}x${YK_SRC_H}, ${yk_rr_aspect} display aspect, ${yk_rr_clock}"
   yk_bordered && yk_info "        black bars stripped, active picture ${YK_ACTIVE_W}x${YK_ACTIVE_H} at +${YK_BORDER_X}+${YK_BORDER_Y}"
-  yk_rr_name="$(printf '%s' "${YK_STANDARD}" | tr '[:lower:]' '[:upper:]')"
-  yk_info "Target: ${yk_rr_name} Video CD, 352x${YK_RASTER_H} at ${YK_FPS} fps"
-  [ "${YK_SPEED}" = 1 ] || yk_info "        film sped up to 25 fps, ${YK_SPEED}x, pitch kept"
+  yk_run_target
   yk_info "        picture ${YK_INNER_W}x${YK_INNER_H} at +${YK_RPAD_X}+${YK_RPAD_Y}, ${YK_FIT}"
   yk_info "        deinterlace ${YK_FIELD_MODE}, denoise ${YK_DENOISE}, sharpen ${YK_SHARPEN}"
   if [ "${YK_HAS_AUDIO}" = yes ]; then yk_info "        audio track ${YK_AUDIO_TRACK}"; else yk_info "        audio silent, the source has none"; fi
@@ -251,7 +257,7 @@ EOF2
     yk_error "${yk_rs_full} image(s) do not fit the selected media."
     return 1
   fi
-  yk_info "Wrote ${YK_TOTAL} Video CD image(s) to ${YK_OUTPUT_DIR}."
+  yk_info "Wrote ${YK_TOTAL} ${YK_FORMAT_NAME} image(s) to ${YK_OUTPUT_DIR}."
   yk_json_report
 }
 

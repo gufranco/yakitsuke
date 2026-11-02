@@ -10,7 +10,8 @@ yk_xml_escape() {
 yk_xml_document() {
   printf '%s\n' '<?xml version="1.0"?>'
   printf '%s\n' '<!DOCTYPE videocd PUBLIC "-//GNU//DTD VideoCD//EN" "http://www.gnu.org/software/vcdimager/videocd.dtd">'
-  printf '%s\n' '<videocd xmlns="http://www.gnu.org/software/vcdimager/1.0/" class="vcd" version="2.0">'
+  printf '<videocd xmlns="http://www.gnu.org/software/vcdimager/1.0/" class="%s" version="%s">\n' "${YK_IMAGE_CLASS}" "${YK_IMAGE_VERSION}"
+  [ "${YK_IMAGE_CLASS}" = vcd ] || printf '  <option name="update scan offsets" value="true"/>\n'
   printf '  <info>\n    <album-id>%s</album-id>\n    <volume-count>%s</volume-count>\n' "$3" "$4"
   printf '    <volume-number>%s</volume-number>\n    <restriction>0</restriction>\n  </info>\n' "$5"
   printf '  <pvd>\n    <volume-id>%s</volume-id>\n    <system-id>CD-RTOS CD-BRIDGE</system-id>\n' "$2"

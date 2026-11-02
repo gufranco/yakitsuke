@@ -22,6 +22,8 @@ yk_args_value() {
   preview) YK_PREVIEW="$2" ;;
   output-dir) YK_OUTPUT_DIR="$2" ;;
   encoder) YK_ENCODER="$2" ;;
+  format) YK_FORMAT="$2" ;;
+  aspect) YK_ASPECT="$2" ;;
   *) return 1 ;;
   esac
 }
@@ -143,7 +145,28 @@ yk_args_validate() {
   yk_check_choice sub-color "${YK_SUB_COLOR}" "auto white yellow" || return 1
   yk_check_choice sub-box "${YK_SUB_BOX}" "auto always never" || return 1
   yk_check_choice encoder "${YK_ENCODER}" "auto mpeg2enc ffmpeg" || return 1
+  yk_args_validate_format || return 1
   yk_args_validate_values
+}
+
+yk_args_validate_format() {
+  if [ -z "${YK_FORMAT}" ]; then
+    YK_FORMAT="${YAKITSUKE_FORMAT:-vcd}"
+    case "${YK_FORMAT}" in
+    vcd | svcd) : ;;
+    *)
+      yk_error "YAKITSUKE_FORMAT must be vcd or svcd, got: ${YK_FORMAT}"
+      return 1
+      ;;
+    esac
+  fi
+  yk_check_choice format "${YK_FORMAT}" "vcd svcd" || return 1
+  yk_check_choice aspect "${YK_ASPECT}" "auto 4:3 16:9" || return 1
+  if [ "${YK_ASPECT}" = 16:9 ] && [ "${YK_FORMAT}" = vcd ]; then
+    yk_error "--aspect 16:9 needs --format svcd"
+    return 1
+  fi
+  return 0
 }
 
 yk_args_validate_values() {

@@ -1,6 +1,6 @@
 .TH YAKITSUKE 1 "2026-10-27" "yakitsuke" "User Commands"
 .SH NAME
-yakitsuke \- turn any video into Video CD images with readable subtitles
+yakitsuke \- turn any video into Video CD or Super Video CD images
 .SH SYNOPSIS
 .B yakitsuke
 .br
@@ -14,8 +14,11 @@ yakitsuke \- turn any video into Video CD images with readable subtitles
 .B yakitsuke help
 .SH DESCRIPTION
 .B yakitsuke
-encodes a video into VCD 2.0 BIN/CUE images, splitting it across as many
-discs as it needs with a short overlap at each seam. Film stays at 23.976
+encodes a video into VCD 2.0 BIN/CUE images, or Super Video CD 1.0 images
+with
+.BR "\-\-format svcd" ,
+splitting it across as many discs as it needs with a short overlap at each
+seam. Film stays at 23.976
 frames per second, interlaced and telecined sources are detected, and every
 stream is checked for Video CD conformance before an image is written.
 .PP
@@ -35,6 +38,11 @@ Print the version and the platform.
 Print the usage page.
 .SH OPTIONS
 .SS Disc
+.TP
+.BI \-\-format " vcd|svcd"
+Video CD 2.0, the default, plays on nearly any player at 80 minutes per
+80-minute disc. Super Video CD 1.0 is MPEG-2 at 480x576 or 480x480, sharper,
+about 48 minutes per 80-minute disc, and needs a DVD-era player.
 .TP
 .BR \-\-cd74 ", " \-\-cd80 ", " \-\-cd90
 74, 80 or 90 minute media. Default 80.
@@ -64,6 +72,11 @@ film stays film and is never duplicated.
 .BR \-\-crop ", " \-\-letterbox
 Fill the frame, the default, cutting what spills over the sides of a wider
 source, or keep the whole frame with black bars.
+.TP
+.BI \-\-aspect " auto|4:3|16:9"
+The shape of a Super Video CD picture. 16:9 stores the picture anamorphic so
+every line carries it; auto picks 16:9 for a source 1.55:1 or wider, measured
+after baked-in bars are stripped. A Video CD is always 4:3. Default auto.
 .TP
 .BI \-\-borders " auto|off"
 Strip baked-in black bars first. Default auto.
@@ -112,7 +125,7 @@ Default auto: mpeg2enc when mjpegtools is installed.
 Destination. Default next to the source.
 .TP
 .B \-\-keep\-mpeg
-Keep the MPEG-1 program streams.
+Keep the MPEG program streams.
 .TP
 .B \-\-force
 Overwrite existing images.
@@ -139,6 +152,10 @@ and
 .B \-\-
 ends the options.
 .SH ENVIRONMENT
+.TP
+.B YAKITSUKE_FORMAT
+vcd or svcd, the default for
+.BR \-\-format .
 .TP
 .B YAKITSUKE_FFMPEG
 The ffmpeg to use. Otherwise the first build on the path with the filters the

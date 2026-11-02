@@ -19,7 +19,7 @@ teardown() {
 
 @test "help prints the usage page" {
   # Arrange
-  local first="yakitsuke - burn any video onto VCD 2.0 BIN/CUE images, split across discs"
+  local first="yakitsuke - burn any video onto Video CD or Super Video CD images"
 
   # Act
   run yk_test_run help

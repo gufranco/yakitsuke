@@ -68,8 +68,24 @@ call_graph() {
   [ "${YK_CROP_W}" != 0 ] || YK_FIT=letterbox
   YK_STANDARD="${YK_STANDARD:-pal}"
   yk_standard_params
+  yk_format_params
   yk_inner_geometry
   yk_filter_graph "${1:-10}"
+}
+
+call_usable() {
+  YK_CAPACITY=$(($1 * 60 * 75))
+  YK_STANDARD=pal
+  yk_standard_params
+  yk_format_params
+  yk_usable_seconds
+}
+
+call_verify() {
+  YK_STANDARD="$2"
+  yk_standard_params
+  yk_format_params
+  yk_verify_stream "$1"
 }
 
 call_progress() {

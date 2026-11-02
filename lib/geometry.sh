@@ -24,6 +24,36 @@ yk_choose_standard() {
     YK_SPEED="$(awk -v r="${YK_SRC_FPS}" 'BEGIN { split(r, p, "/"); f = (p[2] + 0 > 0) ? p[1] / p[2] : p[1] + 0; printf "%.6f\n", 25 / f }')"
   fi
   yk_standard_params
+  yk_format_params
+}
+
+yk_format_params() {
+  [ "${YK_FORMAT:-vcd}" = svcd ] || return 0
+  YK_RASTER_W=480 YK_LINE_W=470 YK_VIDEO_CODEC=mpeg2video YK_FORMAT_NAME="Super Video CD"
+  YK_IMAGE_CLASS=svcd YK_IMAGE_VERSION=1.0 YK_VIDEO_KBPS=2040
+  case "${YK_STANDARD}" in
+  pal) YK_RASTER_H=576 YK_GOP=15 ;;
+  *) YK_RASTER_H=480 YK_GOP=18 YK_FPS=30000/1001 YK_RATE_CODE=4 ;;
+  esac
+}
+
+yk_display_ratio() {
+  case "${YK_DISPLAY}" in
+  16:9) printf '1.7777777778\n' ;;
+  *) printf '1.3333333333\n' ;;
+  esac
+}
+
+yk_choose_display() {
+  YK_DISPLAY=4:3
+  case "${YK_FORMAT:-vcd}:${YK_ASPECT}" in
+  svcd:16:9) YK_DISPLAY=16:9 ;;
+  svcd:auto) awk -v d="${YK_DAR}" 'BEGIN { exit !(d + 0 >= 1.55) }' && YK_DISPLAY=16:9 ;;
+  *) : ;;
+  esac
+  YK_CANVAS_W=1440
+  [ "${YK_DISPLAY}" = 4:3 ] || YK_CANVAS_W=1920
+  return 0
 }
 
 yk_standard_params() {
@@ -49,10 +79,9 @@ yk_display_aspect() {
 }
 
 yk_fit_geometry() {
-  awk -v mode="$1" -v sw="$2" -v sh="$3" -v dar="$4" -v cw="${YK_CANVAS_W}" -v ch="${YK_CANVAS_H}" '
+  awk -v mode="$1" -v sw="$2" -v sh="$3" -v dar="$4" -v disc="${5:-1.3333333333}" -v cw="${YK_CANVAS_W}" -v ch="${YK_CANVAS_H}" '
     function even(v) { v = int(v / 2 + 0.5) * 2; return (v < 2 ? 2 : v) }
     BEGIN {
-      disc = 4.0 / 3.0
       if (mode == "crop") {
         if (dar > disc) { w = even(sw * disc / dar); h = even(sh) } else { w = even(sw); h = even(sh * dar / disc) }
         printf "%d %d %d %d %d %d 0 0\n", w, h, int((sw - w) / 2), int((sh - h) / 2), cw, ch
@@ -72,7 +101,9 @@ ${yk_ge_box}
 EOF
   fi
   YK_DAR="$(yk_display_aspect "${YK_ACTIVE_W}" "${YK_ACTIVE_H}" "${YK_SRC_SAR}")"
-  yk_ge_fit="$(yk_fit_geometry "${YK_FIT}" "${YK_ACTIVE_W}" "${YK_ACTIVE_H}" "${YK_DAR}")"
+  yk_choose_display
+  yk_ge_ratio="$(yk_display_ratio)"
+  yk_ge_fit="$(yk_fit_geometry "${YK_FIT}" "${YK_ACTIVE_W}" "${YK_ACTIVE_H}" "${YK_DAR}" "${yk_ge_ratio}")"
   read -r YK_CROP_W YK_CROP_H YK_CROP_X YK_CROP_Y YK_PIC_W YK_PIC_H YK_PAD_X YK_PAD_Y <<EOF
 ${yk_ge_fit}
 EOF

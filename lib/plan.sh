@@ -3,6 +3,13 @@
 # shellcheck source=SCRIPTDIR/state.sh
 . "${YK_LIB:?}/state.sh"
 
+yk_usable_seconds() {
+  awk -v c="${YK_CAPACITY}" -v f="${YK_FORMAT:-vcd}" -v kbps="$((YK_VIDEO_KBPS + YK_AUDIO_KBPS))" 'BEGIN {
+    if (f == "svcd") printf "%.3f\n", (c - 1200) * 2324 * 8 / (kbps * 1000 * 1.02)
+    else printf "%.3f\n", (c - 1200) / 75
+  }'
+}
+
 yk_disc_plan() {
   awk -v d="$1" -v u="$2" -v ov="$3" 'BEGIN {
     if (ov >= u) ov = 0
