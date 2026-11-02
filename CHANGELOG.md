@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/gufranco/yakitsuke/compare/v1.4.0...v1.4.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* read BusyBox from any line of its answer ([2367b3c](https://github.com/gufranco/yakitsuke/commit/2367b3cc4defb61f1e130938a38ab730c390b04f))
+
 # [1.4.0](https://github.com/gufranco/yakitsuke/compare/v1.3.0...v1.4.0) (2026-10-30)
 
 
