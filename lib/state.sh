@@ -14,6 +14,7 @@ export LC_ALL
 : "${YK_FFMPEG:=}"
 : "${YK_FFPROBE:=}"
 : "${YK_ENCODER:=auto}"
+: "${YK_ENCODER_AUTO:=no}"
 : "${YK_STANDARD:=}"
 : "${YK_DISC_MINUTES:=80}"
 : "${YK_OVERLAP:=30}"

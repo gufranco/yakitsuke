@@ -12,6 +12,7 @@ setup_file() {
   yk_test_media "${BATS_FILE_TMPDIR:?}/tff576.mp4" 8 720x576 50 -vf "interlace=scan=tff,setfield=tff" -flags +ildct+ilme
   yk_test_media "${BATS_FILE_TMPDIR:?}/bff576.mp4" 8 720x576 50 -vf "interlace=scan=bff,setfield=bff" -flags +ildct+ilme
   yk_test_media "${BATS_FILE_TMPDIR:?}/tff480.mp4" 8 640x480 50 -vf "interlace=scan=tff,setfield=tff" -flags +ildct+ilme
+  yk_test_media "${BATS_FILE_TMPDIR:?}/busy.mp4" 6 1280x720 25 -vf "noise=alls=6:allf=t"
   yk_test_srt "${BATS_FILE_TMPDIR:?}/one.srt" 1
   "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "testsrc2=size=352x288:rate=25:duration=1" \
     -f lavfi -i "sine=sample_rate=44100:duration=1" -c:v mpeg1video -c:a mp2 -ac 2 -f vcd "${BATS_FILE_TMPDIR}/vcd.mpg"
@@ -321,7 +322,7 @@ field_order_is() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"        fields kept interlaced, tff first, no denoise or sharpening"* ]]
+  [[ "${output}" == *"        fields kept interlaced, tff first, no denoise, sharpen yes per field"* ]]
   field_order_is "${OUT}/tff576_disc1.mpg" tt
 }
 
@@ -362,13 +363,84 @@ field_order_is() {
   [[ "${output}" == *"        deinterlace on, denoise off"* ]]
 }
 
-@test "kept fields scale line by line and skip sharpening and denoise" {
+@test "kept fields scale line by line, sharpen one field at a time and skip denoise" {
   # Arrange
-  local expected="[0:v:0]fps=25,scale=470:576:interl=1:flags=lanczos+accurate_rnd+full_chroma_int,pad=480:576:4:0:color=black,format=yuv420p,setfield=bff,setsar=1[v]"
+  local expected="[0:v:0]fps=25,scale=470:576:interl=1:flags=lanczos+accurate_rnd+full_chroma_int,setfield=bff,separatefields,unsharp=5:5:0.4:5:5:0.0,weave=first_field=bottom,pad=480:576:4:0:color=black,format=yuv420p,setfield=bff,setsar=1[v]"
 
   # Act
   YK_FORMAT=svcd YK_FIELD_MODE=keep YK_FIELD_ORDER=bff YK_DENOISE=1.5 YK_SRC_W=720 YK_SRC_H=576 YK_PIC_W=1440 YK_PIC_H=1080 run yk_test_call call_graph
 
   # Assert
   [[ "${output}" == "${expected}" ]]
+}
+
+@test "kept fields stay unsharpened when sharpening is off" {
+  # Arrange
+  local expected="[0:v:0]fps=25,scale=470:576:interl=1:flags=lanczos+accurate_rnd+full_chroma_int,pad=480:576:4:0:color=black,format=yuv420p,setfield=tff,setsar=1[v]"
+
+  # Act
+  YK_FORMAT=svcd YK_FIELD_MODE=keep YK_FIELD_ORDER=tff YK_SHARPEN=no YK_SRC_W=720 YK_SRC_H=576 YK_PIC_W=1440 YK_PIC_H=1080 run yk_test_call call_graph
+
+  # Assert
+  [[ "${output}" == "${expected}" ]]
+}
+
+@test "the automatic encoder is ffmpeg for a PAL Super Video CD" {
+  # Arrange
+  local clip="${CLIPS}/wide.mp4"
+
+  # Act
+  run yk_test_run --format svcd --dry-run --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"overlap, ffmpeg"* ]]
+}
+
+@test "the automatic encoder stays mpeg2enc for NTSC film on Super Video CD, for its pulldown" {
+  # Arrange
+  local clip="${CLIPS}/film.mp4"
+
+  # Act
+  run yk_test_run --format svcd --dry-run --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"3:2 pulldown flags"* ]]
+  [[ "${output}" == *"overlap, mpeg2enc"* ]]
+}
+
+@test "an explicit encoder is kept on a PAL Super Video CD" {
+  # Arrange
+  local clip="${CLIPS}/wide.mp4"
+
+  # Act
+  run yk_test_run --format svcd --encoder mpeg2enc --dry-run --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"overlap, mpeg2enc"* ]]
+}
+
+video_kbps() {
+  local probe="${YAKITSUKE_TEST_FFMPEG%/ffmpeg}/ffprobe"
+  local sizes seconds
+  sizes="$("${probe}" -v error -select_streams v:0 -show_entries packet=size -of csv=p=0 "$1")"
+  seconds="$("${probe}" -v error -show_entries format=duration -of csv=p=0 "$1")"
+  printf '%s\n' "${sizes}" | awk -v s="${seconds%,}" '{ b += $1 } END { printf "%d\n", b * 8 / s / 1000 }'
+}
+
+@test "mpeg2enc spends the disc rate on a Super Video CD instead of stopping at its quality floor" {
+  # Arrange
+  local clip="${CLIPS}/busy.mp4"
+
+  # Act
+  run yk_test_run --format svcd --encoder mpeg2enc --keep-mpeg --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"at 2450 kbit/s"* ]]
+  local reached
+  reached="$(video_kbps "${OUT}/busy_disc1.mpg")"
+  [[ "${reached}" -ge 2327 ]]
 }

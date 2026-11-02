@@ -52,9 +52,23 @@ yk_video_pad() {
   return 0
 }
 
+yk_sharpen_filter() {
+  printf 'unsharp=5:5:0.4:5:5:0.0\n'
+}
+
+yk_field_sharpen() {
+  [ "${YK_SHARPEN}" != no ] || return 0
+  yk_fs_first=top
+  [ "${YK_FIELD_ORDER}" = tff ] || yk_fs_first=bottom
+  printf 'setfield=%s\nseparatefields\n' "${YK_FIELD_ORDER}"
+  yk_sharpen_filter
+  printf 'weave=first_field=%s\n' "${yk_fs_first}"
+}
+
 yk_video_scale() {
   if [ "${YK_FIELD_MODE}" = keep ]; then
     printf 'scale=%s:%s:interl=1:flags=lanczos+accurate_rnd+full_chroma_int\n' "${YK_INNER_W}" "${YK_INNER_H}"
+    yk_field_sharpen
     yk_video_pad
     return 0
   fi
@@ -66,7 +80,7 @@ yk_video_scale() {
   if [ "${YK_ZSCALE}" = yes ] && [ "${YK_COLOR_CONVERT}" = yes ] && [ "${yk_vs_in}" != "${YK_MATRIX_OUT}" ]; then
     printf 'zscale=t=bt709:m=%s:p=%s:r=tv\n' "${YK_MATRIX_OUT}" "${YK_MATRIX_OUT}"
   fi
-  [ "${YK_SHARPEN}" = no ] || printf 'unsharp=5:5:0.4:5:5:0.0\n'
+  [ "${YK_SHARPEN}" = no ] || yk_sharpen_filter
   yk_video_pad
 }
 
@@ -169,7 +183,7 @@ yk_mpeg2enc_profile() {
       [ "${YK_FIELD_ORDER}" = tff ] || yk_mp_field=b
       yk_mp_profile="${yk_mp_profile} -I 1 -z ${yk_mp_field}"
     fi
-    printf '%s\n' "${yk_mp_profile} -b 2516 -t ${YK_VIDEO_KBPS} -a ${yk_mp_aspect}"
+    printf '%s\n' "${yk_mp_profile} -b 2516 -q 1 -t ${YK_VIDEO_KBPS} -a ${yk_mp_aspect}"
     return 0
   fi
   printf '%s\n' "-f 1 -b 1152 -a 2"

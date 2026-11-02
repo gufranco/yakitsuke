@@ -120,6 +120,10 @@ ASS style overrides, such as Fontsize=22.
 .TP
 .BI \-\-encoder " auto|mpeg2enc|ffmpeg"
 Default auto: mpeg2enc when mjpegtools is installed.
+A Super Video CD uses ffmpeg,
+which measured sharper at the same size,
+except for NTSC film,
+which mpeg2enc keeps at 23.976 fps with 3:2 pulldown flags.
 .TP
 .BI \-\-output\-dir " dir"
 Destination. Default next to the source.

@@ -58,7 +58,9 @@ subtitles:
 
 encoder and output:
   --encoder auto|mpeg2enc|ffmpeg
-                             default auto: mpeg2enc when mjpegtools is installed
+                             default auto: mpeg2enc when mjpegtools is
+                             installed, ffmpeg for Super Video CD except
+                             NTSC film
   --output-dir DIR           destination (default: next to the source)
   --keep-mpeg                keep the MPEG program streams
   --force                    overwrite existing images

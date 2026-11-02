@@ -38,6 +38,7 @@ yk_run_tools() {
     yk_error "ffprobe is not installed."
     return 1
   }
+  [ "${YK_ENCODER}" != auto ] || YK_ENCODER_AUTO=yes
   YK_ENCODER="$(yk_resolve_encoder)" || {
     yk_error "--encoder mpeg2enc needs mpeg2enc and mplex from mjpegtools."
     return 1
@@ -140,7 +141,7 @@ yk_run_report() {
   yk_run_target
   yk_info "        picture ${YK_INNER_W}x${YK_INNER_H} at +${YK_RPAD_X}+${YK_RPAD_Y}, ${YK_FIT}"
   if [ "${YK_FIELD_MODE}" = keep ]; then
-    yk_info "        fields kept interlaced, ${YK_FIELD_ORDER} first, no denoise or sharpening"
+    yk_info "        fields kept interlaced, ${YK_FIELD_ORDER} first, no denoise, sharpen ${YK_SHARPEN} per field"
   else
     yk_info "        deinterlace ${YK_FIELD_MODE}, denoise ${YK_DENOISE}, sharpen ${YK_SHARPEN}"
   fi

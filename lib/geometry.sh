@@ -27,11 +27,17 @@ yk_choose_standard() {
   yk_format_params
 }
 
+yk_format_encoder() {
+  [ "${YK_ENCODER_AUTO}" = yes ] || return 0
+  [ "${YK_STANDARD}" = film ] || YK_ENCODER=ffmpeg
+}
+
 yk_format_params() {
   [ "${YK_FORMAT:-vcd}" = svcd ] || return 0
   YK_RASTER_W=480 YK_LINE_W=470 YK_VIDEO_CODEC=mpeg2video YK_FORMAT_NAME="Super Video CD"
   YK_IMAGE_CLASS=svcd YK_IMAGE_VERSION=1.0 YK_VIDEO_KBPS="${YK_SVCD_REF_KBPS}"
   YK_PULLDOWN=no
+  yk_format_encoder
   case "${YK_STANDARD}" in
   pal) YK_RASTER_H=576 YK_GOP=15 ;;
   film)
