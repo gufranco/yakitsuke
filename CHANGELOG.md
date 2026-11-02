@@ -1,5 +1,21 @@
 # Changelog
 
+# [1.6.0](https://github.com/gufranco/yakitsuke/compare/v1.5.0...v1.6.0) (2026-11-02)
+
+
+### Bug Fixes
+
+* retry removing the working folder ([cbefdc9](https://github.com/gufranco/yakitsuke/commit/cbefdc9238586b791b9528e39c2fd1babece37f5))
+
+
+### Features
+
+* fill each Super Video CD disc ([7199cf3](https://github.com/gufranco/yakitsuke/commit/7199cf34a2d1cfc5c5871568ba7225b1795ff680))
+* keep interlaced fields on Super Video CD ([41fbb10](https://github.com/gufranco/yakitsuke/commit/41fbb10166327061e2fd90077928a0fe8ee53129))
+* keep NTSC film at 23.976 on Super Video CD ([7efb05b](https://github.com/gufranco/yakitsuke/commit/7efb05b127aeca49b88dba7687acdebafc8924da))
+* pick Super Video CD defaults by measurement ([9308be7](https://github.com/gufranco/yakitsuke/commit/9308be70ae18fc41401c1a5f3b562c8f3bc763d1))
+* write Super Video CD images ([f4978dd](https://github.com/gufranco/yakitsuke/commit/f4978dd7adff3c5986ee4eb8cb39d29cf2921335))
+
 # [1.5.0](https://github.com/gufranco/yakitsuke/compare/v1.4.1...v1.5.0) (2026-11-02)
 
 
