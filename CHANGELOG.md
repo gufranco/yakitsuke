@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.5.0](https://github.com/gufranco/yakitsuke/compare/v1.4.1...v1.5.0) (2026-11-02)
+
+
+### Features
+
+* fill the frame by cropping by default ([80da6cb](https://github.com/gufranco/yakitsuke/commit/80da6cb6b13c25d551ed38191e9b651d26ed1e78))
+
 ## [1.4.1](https://github.com/gufranco/yakitsuke/compare/v1.4.0...v1.4.1) (2026-11-02)
 
 
