@@ -16,6 +16,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 | kakikomi | Writes a disk image to removable media, verified chunk by chunk, never mounted | [gufranco/kakikomi](https://github.com/gufranco/kakikomi) |
 | katazuke | Clears the junk other systems leave on a FAT or exFAT disk, then sorts its folders | [gufranco/katazuke](https://github.com/gufranco/katazuke) |
 | kiban | Runs Docker and the local databases a project needs, in a native VM on a Mac and with no VM on Linux | [gufranco/kiban](https://github.com/gufranco/kiban) |
+| kirisute | Cuts Nintendo DS and DSi ROM files down to the size their header declares | [gufranco/kirisute](https://github.com/gufranco/kirisute) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
 | shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
 | yakitsuke | Turns any video into Video CD images, split across discs, with readable subtitles | [gufranco/yakitsuke](https://github.com/gufranco/yakitsuke) |
@@ -25,7 +26,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 Copy this file in unchanged, write an `AGENTS.md` with the same headings as the other members', follow both, and add the repository to the table above in every member in the same task. With the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho jimaku kakikomi katazuke kiban kiyome shiwake yakitsuke; do
+for member in fusho jimaku kakikomi katazuke kiban kirisute kiyome shiwake yakitsuke; do
   cmp FAMILY.md "../${member}/FAMILY.md"
 done
 ```
@@ -134,7 +135,7 @@ dd                 ok       /usr/bin/dd, uutils 0.10.0
 sed                ok       /opt/homebrew/opt/gnu-sed/libexec/gnubin/sed, gnu 4.10
 ```
 
-The flavor is `gnu`, `uutils`, `bsd`, `mawk`, `busybox` or `unknown`. It comes from the tool's own `--version` answer, then from where it is installed, then from the system it runs on. A new dependency gets its `doctor` row, with its flavor when it is a core tool, in the same change.
+The flavor is `gnu`, `uutils`, `bsd`, `mawk`, `busybox` or `unknown`. It comes from the tool's own `--version` answer, then from where it is installed, then from the system it runs on. A BusyBox applet prints its usage error before the line that names BusyBox, and BusyBox `sed` answers `This is not GNU sed version 4.0`, so the answer is read from the first line that names BusyBox or says it is not GNU, and that `sed` answer reads as `busybox` with no version. A new dependency gets its `doctor` row, with its flavor when it is a core tool, in the same change.
 
 ## Toolsets
 
