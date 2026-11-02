@@ -81,6 +81,11 @@ call_usable() {
   yk_usable_seconds
 }
 
+call_rate() {
+  YK_CAPACITY=$(($1 * 60 * 75))
+  yk_disc_rate "$2"
+}
+
 call_verify() {
   YK_STANDARD="$2"
   yk_standard_params

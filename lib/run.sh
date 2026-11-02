@@ -114,7 +114,7 @@ yk_run_target() {
   yk_info "Target: ${yk_rta_name} ${YK_FORMAT_NAME}, ${YK_RASTER_W}x${YK_RASTER_H} at ${YK_FPS} fps"
   [ "${YK_SPEED}" = 1 ] || yk_info "        film sped up to 25 fps, ${YK_SPEED}x, pitch kept"
   [ "${YK_FORMAT:-vcd}" = vcd ] && return 0
-  yk_info "        ${YK_DISPLAY}, video ${YK_VIDEO_KBPS} kbit/s average, 2516 kbit/s peak"
+  yk_info "        ${YK_DISPLAY}, video ${YK_SVCD_REF_KBPS} to ${YK_SVCD_MAX_KBPS} kbit/s average, filling each disc"
 }
 
 yk_run_report() {
@@ -212,6 +212,33 @@ yk_run_existing() {
   return 1
 }
 
+yk_run_master() {
+  yk_rm_rate=""
+  [ "${YK_FORMAT:-vcd}" = vcd ] || yk_rm_rate=" at ${YK_VIDEO_KBPS} kbit/s"
+  yk_info "Disc $1 of ${YK_TOTAL}, encoding $3s from $2s${yk_rm_rate}"
+  YK_PROGRESS_LABEL="Disc $1 of ${YK_TOTAL}, encoding"
+  yk_encode_disc "$2" "$3" "${yk_rn_mpg}" || return 2
+  yk_verify_stream "${yk_rn_mpg}" || return 2
+  yk_rm_entries=""
+  [ "${YK_CHAPTERS}" -eq 0 ] || yk_rm_entries="$(yk_entry_points "${YK_INPUT}" "$3" "$2")"
+  yk_build_image "$1" "${yk_rn_mpg}" "${yk_rn_bin}" "${yk_rn_cue}" "${yk_rm_entries}"
+}
+
+yk_run_fit() {
+  [ "${YK_FORMAT:-vcd}" = vcd ] || YK_VIDEO_KBPS="$(yk_disc_rate "$3")"
+  yk_rf_try=0
+  yk_run_master "$1" "$2" "$3"
+  yk_rf_status="$?"
+  while [ "${yk_rf_status}" -eq 1 ] && [ "${YK_FORMAT:-vcd}" = svcd ] && [ "${yk_rf_try}" -lt "${YK_FIT_RETRIES}" ]; do
+    yk_rf_try=$((yk_rf_try + 1))
+    YK_VIDEO_KBPS=$((YK_VIDEO_KBPS * 97 / 100))
+    yk_warning "disc $1 of ${YK_TOTAL} does not fit; encoding it again at ${YK_VIDEO_KBPS} kbit/s."
+    yk_run_master "$1" "$2" "$3"
+    yk_rf_status="$?"
+  done
+  return "${yk_rf_status}"
+}
+
 yk_run_disc() {
   yk_rn_mpg="${YK_WORK}/disc$1.mpg"
   yk_rn_bin="${YK_OUTPUT_DIR}/${YK_STEM}_disc$1.bin"
@@ -228,13 +255,7 @@ yk_run_disc() {
   if [ -n "${YK_SUB_MASTER}" ]; then
     yk_subs_shift "${YK_SUB_MASTER}" "${YK_WORK}/subtitles.ass" "$2" "$3" || return 2
   fi
-  yk_info "Disc $1 of ${YK_TOTAL}, encoding $3s from $2s"
-  YK_PROGRESS_LABEL="Disc $1 of ${YK_TOTAL}, encoding"
-  yk_encode_disc "$2" "$3" "${yk_rn_mpg}" || return 2
-  yk_verify_stream "${yk_rn_mpg}" || return 2
-  yk_rn_entries=""
-  [ "${YK_CHAPTERS}" -eq 0 ] || yk_rn_entries="$(yk_entry_points "${YK_INPUT}" "$3" "$2")"
-  yk_build_image "$1" "${yk_rn_mpg}" "${yk_rn_bin}" "${yk_rn_cue}" "${yk_rn_entries}" || return "$?"
+  yk_run_fit "$1" "$2" "$3" || return "$?"
   [ "${YK_KEEP_MPEG}" = no ] || mv -f "${yk_rn_mpg}" "${YK_OUTPUT_DIR}/${YK_STEM}_disc$1.mpg"
   yk_info "Disc $1 of ${YK_TOTAL}: $(basename -- "${yk_rn_bin}"), ${YK_IMAGE_SECTORS} of ${YK_CAPACITY} sectors, $((YK_IMAGE_SECTORS * 100 / YK_CAPACITY))% full"
   yk_json_disc "$1" "${yk_rn_bin}" "${yk_rn_cue}" false

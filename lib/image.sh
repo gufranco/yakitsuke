@@ -57,7 +57,11 @@ yk_build_image() {
     yk_detail "${YK_WORK}/vcdxbuild.log"
     return 2
   fi
-  yk_verify_image "${YK_STAGE}/${yk_bi_bin}" || return 1
+  if ! yk_verify_image "${YK_STAGE}/${yk_bi_bin}"; then
+    rm -rf "${YK_STAGE}"
+    YK_STAGE=""
+    return 1
+  fi
   mv -f "${YK_STAGE}/${yk_bi_bin}" "$3"
   mv -f "${YK_STAGE}/${yk_bi_cue}" "$4"
   rm -rf "${YK_STAGE}"

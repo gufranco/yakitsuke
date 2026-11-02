@@ -30,7 +30,7 @@ yk_choose_standard() {
 yk_format_params() {
   [ "${YK_FORMAT:-vcd}" = svcd ] || return 0
   YK_RASTER_W=480 YK_LINE_W=470 YK_VIDEO_CODEC=mpeg2video YK_FORMAT_NAME="Super Video CD"
-  YK_IMAGE_CLASS=svcd YK_IMAGE_VERSION=1.0 YK_VIDEO_KBPS=2040
+  YK_IMAGE_CLASS=svcd YK_IMAGE_VERSION=1.0 YK_VIDEO_KBPS="${YK_SVCD_REF_KBPS}"
   case "${YK_STANDARD}" in
   pal) YK_RASTER_H=576 YK_GOP=15 ;;
   *) YK_RASTER_H=480 YK_GOP=18 YK_FPS=30000/1001 YK_RATE_CODE=4 ;;

@@ -10,6 +10,15 @@ yk_usable_seconds() {
   }'
 }
 
+yk_disc_rate() {
+  awk -v c="${YK_CAPACITY}" -v s="$1" -v a="${YK_AUDIO_KBPS}" -v lo="${YK_SVCD_REF_KBPS}" -v hi="${YK_SVCD_MAX_KBPS}" 'BEGIN {
+    r = int((c - 1200) * 2324 * 8 / (s * 1000 * 1.02) - a)
+    if (r > hi) r = hi
+    if (r < lo) r = lo
+    print r
+  }'
+}
+
 yk_disc_plan() {
   awk -v d="$1" -v u="$2" -v ov="$3" 'BEGIN {
     if (ov >= u) ov = 0

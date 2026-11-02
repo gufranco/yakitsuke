@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2016
 
 # shellcheck source=test/helpers.bash
 source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
@@ -57,7 +58,7 @@ image_is_svcd() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Target: PAL Super Video CD, 480x576 at 25 fps"$'\n'"        4:3, video 2040 kbit/s average, 2516 kbit/s peak"* ]]
+  [[ "${output}" == *"Target: PAL Super Video CD, 480x576 at 25 fps"$'\n'"        4:3, video 2040 to 2450 kbit/s average, filling each disc"* ]]
 }
 
 @test "YAKITSUKE_FORMAT picks the format and --format wins over it" {
@@ -111,9 +112,9 @@ image_is_svcd() {
   run yk_test_run --format svcd --dry-run --output-dir "${OUT}" "${clip}"
 
   # Assert
-  [[ "${output}" == *"        16:9, video 2040 kbit/s average"* ]]
+  [[ "${output}" == *"        16:9, video 2040 to 2450 kbit/s average"* ]]
   run yk_test_run --format svcd --aspect 4:3 --dry-run --output-dir "${OUT}" "${clip}"
-  [[ "${output}" == *"        4:3, video 2040 kbit/s average"* ]]
+  [[ "${output}" == *"        4:3, video 2040 to 2450 kbit/s average"* ]]
 }
 
 @test "--aspect 16:9 makes a 4:3 source a 16:9 Super Video CD" {
@@ -212,4 +213,50 @@ image_is_svcd() {
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"subtitles burned in: 1 lines"* ]]
   [[ -s "${OUT}/square_disc1.bin" ]]
+}
+
+@test "each SVCD disc's average rate fills it, between the reference and the ceiling" {
+  # Arrange
+  local rates=""
+  local span
+
+  # Act
+  for span in 2400 2600 2888.697 3000; do
+    rates="${rates}$(YK_FORMAT=svcd yk_test_call call_rate 80 "${span}") "
+  done
+
+  # Assert
+  [[ "${rates}" == "2450 2291 2040 2040 " ]]
+}
+
+@test "an SVCD disc that overflows is encoded again at 3% less, then fits" {
+  # Arrange
+  local clip="${CLIPS}/square.mp4"
+  yk_test_shim vcdxbuild '"$REAL" "$@" || exit 1; [ -e "'"${WORK}"'/padded" ] && exit 0; : >"'"${WORK}"'/padded"; dd if=/dev/zero bs=2352 count=5000 2>/dev/null >>"$4"'
+
+  # Act
+  run yk_test_run --format svcd --encoder ffmpeg --disc-minutes 1 --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"yakitsuke: warning: disc 1 of 1 does not fit; encoding it again at 2376 kbit/s."* ]]
+  [[ "${output}" == *"Disc 1 of 1, encoding 3.000s from 0.000s at 2376 kbit/s"* ]]
+  [[ -s "${OUT}/square_disc1.bin" ]]
+}
+
+@test "an SVCD disc that never fits stops after three tries and leaves no staging folder" {
+  # Arrange
+  local clip="${CLIPS}/square.mp4"
+  local leftovers
+  yk_test_shim vcdxbuild '"$REAL" "$@" || exit 1; dd if=/dev/zero bs=2352 count=5000 2>/dev/null >>"$4"'
+
+  # Act
+  run yk_test_run --format svcd --encoder ffmpeg --disc-minutes 1 --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"encoding it again at 2234 kbit/s."* ]]
+  [[ "${output}" == *"yakitsuke: 1 image(s) do not fit the selected media."* ]]
+  leftovers="$(find "${OUT}" -name '.yakitsuke.*')"
+  [[ -z "${leftovers}" ]]
 }
