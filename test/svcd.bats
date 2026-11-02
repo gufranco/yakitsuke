@@ -8,6 +8,7 @@ setup_file() {
   yk_test_media "${BATS_FILE_TMPDIR:?}/wide.mp4" 3 640x360 25
   yk_test_media "${BATS_FILE_TMPDIR:?}/square.mp4" 3 320x240 25
   yk_test_media "${BATS_FILE_TMPDIR:?}/ntsc.mp4" 3 640x360 30000/1001
+  yk_test_media "${BATS_FILE_TMPDIR:?}/film.mp4" 3 640x360 24000/1001
   yk_test_srt "${BATS_FILE_TMPDIR:?}/one.srt" 1
   "${YAKITSUKE_TEST_FFMPEG}" -hide_banner -v error -y -f lavfi -i "testsrc2=size=352x288:rate=25:duration=1" \
     -f lavfi -i "sine=sample_rate=44100:duration=1" -c:v mpeg1video -c:a mp2 -ac 2 -f vcd "${BATS_FILE_TMPDIR}/vcd.mpg"
@@ -259,4 +260,45 @@ image_is_svcd() {
   [[ "${output}" == *"yakitsuke: 1 image(s) do not fit the selected media."* ]]
   leftovers="$(find "${OUT}" -name '.yakitsuke.*')"
   [[ -z "${leftovers}" ]]
+}
+
+repeated_frames() {
+  local flags
+  flags="$("${YAKITSUKE_TEST_FFMPEG%/ffmpeg}/ffprobe" -v error -show_entries frame=repeat_pict -of csv=p=0 "$1")"
+  printf '%s\n' "${flags}" | awk -F, '$1 == 1 { n++ } END { print n + 0 }'
+}
+
+frame_rate_is() {
+  local rate
+  rate="$("${YAKITSUKE_TEST_FFMPEG%/ffmpeg}/ffprobe" -v error -select_streams v:0 -show_entries stream=r_frame_rate -of csv=p=0 "$1")"
+  [[ "${rate%,}" == "$2" ]]
+}
+
+@test "mpeg2enc keeps NTSC film at 23.976 with 3:2 pulldown flags on SVCD" {
+  # Arrange
+  local clip="${CLIPS}/film.mp4"
+  local repeated
+
+  # Act
+  run yk_test_run --format svcd --encoder mpeg2enc --keep-mpeg --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"        film kept at 23.976 fps, shown at 29.97 through 3:2 pulldown flags"* ]]
+  repeated="$(repeated_frames "${OUT}/film_disc1.mpg")"
+  [[ "${repeated}" -gt 30 ]]
+  image_is_svcd "${OUT}/film_disc1.bin"
+}
+
+@test "ffmpeg brings NTSC film to 29.97 frames on SVCD, without pulldown flags" {
+  # Arrange
+  local clip="${CLIPS}/film.mp4"
+
+  # Act
+  run yk_test_run --format svcd --encoder ffmpeg --keep-mpeg --output-dir "${OUT}" "${clip}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" != *"pulldown"* ]]
+  frame_rate_is "${OUT}/film_disc1.mpg" 30000/1001
 }

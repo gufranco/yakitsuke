@@ -115,6 +115,7 @@ yk_run_target() {
   [ "${YK_SPEED}" = 1 ] || yk_info "        film sped up to 25 fps, ${YK_SPEED}x, pitch kept"
   [ "${YK_FORMAT:-vcd}" = vcd ] && return 0
   yk_info "        ${YK_DISPLAY}, video ${YK_SVCD_REF_KBPS} to ${YK_SVCD_MAX_KBPS} kbit/s average, filling each disc"
+  [ "${YK_PULLDOWN}" = no ] || yk_info "        film kept at 23.976 fps, shown at 29.97 through 3:2 pulldown flags"
 }
 
 yk_run_report() {

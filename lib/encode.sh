@@ -147,7 +147,9 @@ yk_mpeg2enc_profile() {
   if [ "${YK_FORMAT:-vcd}" = svcd ]; then
     yk_mp_aspect=2
     [ "${YK_DISPLAY}" = 4:3 ] || yk_mp_aspect=3
-    printf '%s\n' "-f 4 -b 2516 -t ${YK_VIDEO_KBPS} -a ${yk_mp_aspect}"
+    yk_mp_profile="-f 4"
+    [ "${YK_PULLDOWN}" = no ] || yk_mp_profile="-f 5 -p"
+    printf '%s\n' "${yk_mp_profile} -b 2516 -t ${YK_VIDEO_KBPS} -a ${yk_mp_aspect}"
     return 0
   fi
   printf '%s\n' "-f 1 -b 1152 -a 2"
