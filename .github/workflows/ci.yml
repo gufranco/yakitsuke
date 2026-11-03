@@ -140,7 +140,7 @@ jobs:
           sudo apt-get install -y -qq -o Dir::Cache::Archives="${HOME}/apt-archives" -o APT::Sandbox::User=root \
             bats dash zsh mandoc parallel ffmpeg mjpegtools vcdimager "${extra[@]}"
           sudo chown -R "$(id -u):$(id -g)" "${HOME}/apt-archives"
-      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94  # v1.336.0
         if: matrix.coverage
         with:
           bundler-cache: true
@@ -206,7 +206,7 @@ jobs:
       - name: Install the uutils toolset
         if: matrix.toolset == 'uutils'
         run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
-      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94  # v1.336.0
         if: matrix.coverage
         with:
           bundler-cache: true
