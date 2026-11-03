@@ -15,6 +15,6 @@ docker run --rm \
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq >/dev/null
     apt-get install -y -qq --no-install-recommends \
-      bats dash zsh mandoc file python3 ca-certificates ffmpeg mjpegtools vcdimager >/dev/null
+      bats dash zsh mandoc file python3 ca-certificates git ffmpeg mjpegtools vcdimager >/dev/null
     exec "$@"
   ' sh "$@"
