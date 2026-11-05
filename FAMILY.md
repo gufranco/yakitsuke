@@ -18,6 +18,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 | kiban | Runs Docker and the local databases a project needs, in a native VM on a Mac and with no VM on Linux | [gufranco/kiban](https://github.com/gufranco/kiban) |
 | kirisute | Cuts Game Boy Advance, DS, DSi and 3DS ROMs and PSP ISOs down to their real size, and renames them after their headers | [gufranco/kirisute](https://github.com/gufranco/kirisute) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
+| nazuke | Gives long names short, readable, unique ones, and renames a folder's files to them | [gufranco/nazuke](https://github.com/gufranco/nazuke) |
 | shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
 | yakitsuke | Turns any video into Video CD images, split across discs, with readable subtitles | [gufranco/yakitsuke](https://github.com/gufranco/yakitsuke) |
 
@@ -26,7 +27,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 Copy this file in unchanged, write an `AGENTS.md` with the same headings as the other members', follow both, and add the repository to the table above in every member in the same task. With the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho jimaku kakikomi katazuke kiban kirisute kiyome shiwake yakitsuke; do
+for member in fusho jimaku kakikomi katazuke kiban kirisute kiyome nazuke shiwake yakitsuke; do
   cmp FAMILY.md "../${member}/FAMILY.md"
 done
 ```
