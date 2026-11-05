@@ -28,6 +28,33 @@ wrapper="${wrapper_dir}/bashcov-shell"
 } >"${wrapper}"
 chmod 0755 "${wrapper}"
 
+probe_root="${wrapper_dir}/probe"
+mkdir -p "${probe_root}/coverage"
+probe="${probe_root}/probe.sh"
+{
+  printf '%s%s\n' "${hashbang}" "${bash_bin}"
+  # shellcheck disable=SC2016
+  printf '%s\n' 'delimiter="${PS4:9:36}"' ': "+BASHCOV>${delimiter}broken${delimiter}"' \
+    'count=0' 'while [ "${count}" -lt 20000 ]; do count=$((count + 1)); done'
+} >"${probe}"
+BUNDLE_GEMFILE="${root}/Gemfile" "${ruby_bin}" -rbundler/setup "${bashcov_bin}" --root "${probe_root}" \
+  --bash-path "${bash_bin}" --command-name probe -- "${probe}" >/dev/null 2>&1 &
+probe_pid=$!
+probe_ticks=0
+while kill -0 "${probe_pid}" 2>/dev/null; do
+  if [ "${probe_ticks}" -ge 600 ]; then
+    printf 'coverage: bashcov stopped reading the trace after a damaged record, so a traced test would hang.\n' >&2
+    kill "${probe_pid}" 2>/dev/null
+    exit 1
+  fi
+  sleep 0.1
+  probe_ticks=$((probe_ticks + 1))
+done
+if ! wait "${probe_pid}"; then
+  printf 'coverage: bashcov failed on a damaged trace record instead of skipping it.\n' >&2
+  exit 1
+fi
+
 test_jobs="${YAKITSUKE_TEST_JOBS:-1}"
 case "${test_jobs}" in
 '' | *[!0-9]*)

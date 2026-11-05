@@ -15,6 +15,36 @@ blocking_pipe = Module.new do
 end
 Bashcov::Xtrace.prepend(blocking_pipe)
 
+record_reader = Module.new do
+  define_method(:read) do
+    @field_stream.read = @read
+    start = Bashcov::Xtrace::PS4_START_REGEXP
+    width = Bashcov::Xtrace::FIELDS.length + 1
+    fields = @field_stream.each_field(Bashcov::Xtrace.delimiter)
+    previous = nil
+    fields.slice_before { |field| field.match?(start) }.each do |record|
+      count_record(previous, width) if previous
+      previous = record
+    end
+    count_record(previous.length == width + 1 ? previous.first(width) : previous, width) if previous
+    @files
+  rescue StandardError
+    IO.copy_stream(@read, IO::NULL)
+    raise
+  ensure
+    @read.close unless @read.closed?
+  end
+
+  define_method(:count_record) do |record, width|
+    return unless record.length == width && record.first.match?(Bashcov::Xtrace::PS4_START_REGEXP)
+
+    parse_hit!(*record.drop(1))
+  rescue Bashcov::XtraceError
+    nil
+  end
+end
+Bashcov::Xtrace.prepend(record_reader)
+
 Thread.report_on_exception = false
 runner = Bashcov::Runner.new(Bashcov.command)
 status, coverage = File.open(File.join(Bashcov.root_directory, "coverage", "bashcov-warnings.log"), "a") do |quiet|
