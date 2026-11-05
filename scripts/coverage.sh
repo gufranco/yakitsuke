@@ -28,6 +28,12 @@ wrapper="${wrapper_dir}/bashcov-shell"
 } >"${wrapper}"
 chmod 0755 "${wrapper}"
 
+if ! BUNDLE_GEMFILE="${root}/Gemfile" "${ruby_bin}" -rbundler/setup -e '' 2>"${wrapper_dir}/bundle.err"; then
+  printf 'coverage: the gems in %s/Gemfile.lock are not all installed. Run bundle install first.\n' "${root}" >&2
+  head -n 1 "${wrapper_dir}/bundle.err" >&2
+  exit 1
+fi
+
 probe_root="${wrapper_dir}/probe"
 mkdir -p "${probe_root}/coverage"
 probe="${probe_root}/probe.sh"
