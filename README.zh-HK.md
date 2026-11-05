@@ -19,7 +19,7 @@
 
 </div>
 
-一條指令，264 個測試，12 個 shell 模組。除了 POSIX 系統、gum 和它調用的影片工具，執行時沒有其他依賴。`yakitsuke` 是日文「焼き付け」，意思是燒錄：把電影燒到光碟上，把字幕燒進畫面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 負責寫入和清除磁碟。
+一條指令，275 個測試，12 個 shell 模組。除了 POSIX 系統、gum 和它調用的影片工具，執行時沒有其他依賴。`yakitsuke` 是日文「焼き付け」，意思是燒錄：把電影燒到光碟上，把字幕燒進畫面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 負責寫入和清除磁碟。
 
 ---
 

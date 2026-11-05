@@ -18,7 +18,7 @@ jobs:
     name: recover main
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-26.04
-    timeout-minutes: 5
+    timeout-minutes: 355
     concurrency:
       group: recover-${{ github.repository }}
       cancel-in-progress: false
@@ -36,28 +36,11 @@ jobs:
           ref: main
           fetch-depth: 0
           persist-credentials: false
-      - name: Restart ci when GitHub never gave a job a runner, or release a green main
+      - name: Restart ci when GitHub never gave a job a runner, wait for it, and release a green main
         id: state
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          state="$(sh .github/scripts/ci-state.sh "${GITHUB_REPOSITORY}")"
-          echo "main at $(git rev-parse --short HEAD) is ${state}"
-          case "${state}" in
-            lost)
-              gh workflow run ci.yml --repo "${GITHUB_REPOSITORY}" --ref main
-              ;;
-            exhausted)
-              echo "::error::five ci runs on main never got a runner; run gh workflow run ci.yml --ref main"
-              exit 1
-              ;;
-            release)
-              echo "sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
-              ;;
-            *)
-              ;;
-          esac
+        run: sh .github/scripts/recover.sh "${GITHUB_REPOSITORY}"
 
   release:
     name: release
