@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.7.0](https://github.com/gufranco/yakitsuke/compare/v1.6.0...v1.7.0) (2026-11-05)
+
+
+### Features
+
+* draw the terminal interface with gum ([30927a9](https://github.com/gufranco/yakitsuke/commit/30927a9ccfaf849c0894b28c16b06ae94d9139d0))
+
 # [1.6.0](https://github.com/gufranco/yakitsuke/compare/v1.5.0...v1.6.0) (2026-11-02)
 
 
