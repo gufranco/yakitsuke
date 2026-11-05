@@ -148,7 +148,7 @@ jobs:
           set -euo pipefail
           name="gum_${GUM_VERSION}_Linux_x86_64"
           base="https://github.com/charmbracelet/gum/releases/download/v${GUM_VERSION}"
-          curl -fsSL --retry 3 -o "${RUNNER_TEMP}/${name}.tar.gz" "${base}/${name}.tar.gz"
+          curl -fsSL --retry 6 --retry-delay 10 -o "${RUNNER_TEMP}/${name}.tar.gz" "${base}/${name}.tar.gz"
           printf '%s  %s\n' "${GUM_SHA256}" "${RUNNER_TEMP}/${name}.tar.gz" | sha256sum -c -
           tar -xzf "${RUNNER_TEMP}/${name}.tar.gz" -C "${RUNNER_TEMP}"
           sudo install -m 0755 "${RUNNER_TEMP}/${name}/gum" /usr/local/bin/gum
