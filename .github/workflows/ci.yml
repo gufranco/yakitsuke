@@ -140,6 +140,18 @@ jobs:
           sudo apt-get install -y -qq -o Dir::Cache::Archives="${HOME}/apt-archives" -o APT::Sandbox::User=root \
             bats dash zsh mandoc parallel ffmpeg mjpegtools vcdimager "${extra[@]}"
           sudo chown -R "$(id -u):$(id -g)" "${HOME}/apt-archives"
+      - name: Install gum
+        env:
+          GUM_VERSION: 2.0.2
+          GUM_SHA256: d842e06d93dbed90af48cb8dd10698db6f22e331fc40346bb37bbc753109edc2
+        run: |
+          set -euo pipefail
+          name="gum_${GUM_VERSION}_Linux_x86_64"
+          base="https://github.com/charmbracelet/gum/releases/download/v${GUM_VERSION}"
+          curl -fsSL --retry 3 -o "${RUNNER_TEMP}/${name}.tar.gz" "${base}/${name}.tar.gz"
+          printf '%s  %s\n' "${GUM_SHA256}" "${RUNNER_TEMP}/${name}.tar.gz" | sha256sum -c -
+          tar -xzf "${RUNNER_TEMP}/${name}.tar.gz" -C "${RUNNER_TEMP}"
+          sudo install -m 0755 "${RUNNER_TEMP}/${name}/gum" /usr/local/bin/gum
       - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94  # v1.336.0
         if: matrix.coverage
         with:
@@ -195,7 +207,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install shells and tools
-        run: brew install --formula bats-core bash dash-shell zsh parallel mjpegtools vcdimager
+        run: brew install --formula bats-core bash dash-shell zsh parallel mjpegtools vcdimager gum
       - name: Install ffmpeg
         env:
           FORMULA: ${{ matrix.ffmpeg || 'ffmpeg-full' }}

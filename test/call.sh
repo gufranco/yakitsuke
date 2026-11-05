@@ -6,6 +6,8 @@ YK_SHARE="$(cd "$(dirname "$0")/../share" && pwd)" || exit 1
 
 # shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${YK_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/ui.sh
+. "${YK_LIB}/ui.sh"
 # shellcheck source=SCRIPTDIR/../lib/cli.sh
 . "${YK_LIB}/cli.sh"
 # shellcheck source=SCRIPTDIR/../lib/args.sh

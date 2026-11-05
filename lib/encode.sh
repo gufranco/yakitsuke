@@ -192,8 +192,6 @@ yk_mpeg2enc_profile() {
 yk_encode_with_mpeg2enc() {
   rm -f "${YK_WORK}/ffmpeg.status"
   yk_em_profile="$(yk_mpeg2enc_profile)"
-  yk_em_mux="-f 1"
-  [ "${YK_FORMAT:-vcd}" = vcd ] || yk_em_mux="-f 4 -V"
   (
     cd "${YK_WORK}" || exit 1
     {
@@ -205,13 +203,19 @@ yk_encode_with_mpeg2enc() {
     }
   ) 2>"${YK_WORK}/encode.log" || return 1
   yk_em_status="$(cat "${YK_WORK}/ffmpeg.status" 2>/dev/null || true)"
-  [ "${yk_em_status}" = 0 ] || return 1
+  [ "${yk_em_status}" = 0 ]
+}
+
+yk_encode_mux() {
+  [ "${YK_ENCODER}" = mpeg2enc ] || return 0
+  yk_mx_mux="-f 1"
+  [ "${YK_FORMAT:-vcd}" = vcd ] || yk_mx_mux="-f 4 -V"
   # shellcheck disable=SC2086
-  if ! mplex ${yk_em_mux} -o "$3" "${YK_WORK}/video.m1v" "${YK_WORK}/audio.mp2" 2>"${YK_WORK}/mplex.log"; then
-    if [ ! -s "$3" ]; then
+  if ! mplex ${yk_mx_mux} -o "$1" "${YK_WORK}/video.m1v" "${YK_WORK}/audio.mp2" 2>"${YK_WORK}/mplex.log"; then
+    if [ ! -s "$1" ]; then
       yk_error "mplex failed."
       yk_detail "${YK_WORK}/mplex.log"
-      return 2
+      return 1
     fi
     yk_warning "mplex reported a buffer margin warning; the stream is checked next."
   fi
@@ -238,17 +242,38 @@ ${yk_po_fields}
 EOF
   [ "$2" = final ] && yk_po_pct=100 && yk_po_left=0
   yk_po_line="$(printf '%s %3d%%  %s  %dm%02ds left' "${YK_PROGRESS_LABEL}" "${yk_po_pct}" "${yk_po_rate}" $((yk_po_left / 60)) $((yk_po_left % 60)))"
-  if [ -t 2 ]; then
+  if yk_ui_err; then
+    yk_progress_bar "${yk_po_pct}" "$(printf '%s  %dm%02ds left' "${yk_po_rate}" $((yk_po_left / 60)) $((yk_po_left % 60)))"
+  elif [ -t 2 ]; then
     printf '\r%s   ' "${yk_po_line}" >&2
-    [ "$2" = final ] && printf '\n' >&2
+  else
+    yk_progress_log "$2"
     return 0
   fi
+  : >"${YK_WORK}/bar.open"
+  [ "$2" = final ] || return 0
+  printf '\n' >&2
+  rm -f "${YK_WORK}/bar.open"
+}
+
+yk_progress_log() {
   yk_po_step=$((yk_po_pct / 10))
-  if [ "$2" = final ] || { [ "${yk_po_pct}" -lt 100 ] && [ "${yk_po_step}" -gt "${YK_PROGRESS_STEP}" ]; }; then
+  if [ "$1" = final ] || { [ "${yk_po_pct}" -lt 100 ] && [ "${yk_po_step}" -gt "${YK_PROGRESS_STEP}" ]; }; then
     YK_PROGRESS_STEP="${yk_po_step}"
     yk_info "${yk_po_line}"
   fi
   return 0
+}
+
+yk_progress_bar() {
+  yk_pb_full=$(($1 * 24 / 100))
+  yk_pb_char="$(printf '\342\224\201')"
+  yk_pb_done="$(printf '%*s' "${yk_pb_full}" '' | sed "s/ /${yk_pb_char}/g")"
+  yk_pb_rest="$(printf '%*s' $((24 - yk_pb_full)) '' | sed "s/ /${yk_pb_char}/g")"
+  yk_pb_done="$(yk_ui_ink "${YK_UI_ACCENT}" -- "${yk_pb_done}")"
+  yk_pb_rest="$(yk_ui_ink "${YK_UI_SURFACE}" -- "${yk_pb_rest}")"
+  yk_pb_tail="$(yk_ui_ink "${YK_UI_MUTED}" -- "$2")"
+  printf '\r%s %s%s %3d%%  %s   ' "${YK_PROGRESS_LABEL}" "${yk_pb_done}" "${yk_pb_rest}" "$1" "${yk_pb_tail}" >&2
 }
 
 yk_progress_watch() {
@@ -262,7 +287,7 @@ yk_progress_watch() {
 }
 
 yk_encode_disc() {
-  rm -f "${YK_WORK}/progress.txt"
+  rm -f "${YK_WORK}/progress.txt" "${YK_WORK}/bar.open"
   : >"${YK_WORK}/encoding"
   YK_PROGRESS_STEP=0
   yk_progress_watch "$2" &
@@ -271,8 +296,23 @@ yk_encode_disc() {
   yk_encode_run "$@" || yk_ed_status=1
   rm -f "${YK_WORK}/encoding"
   wait "${yk_ed_watcher}" 2>/dev/null
-  [ "${yk_ed_status}" -eq 0 ] && yk_progress_show "$2" final
-  return "${yk_ed_status}"
+  yk_progress_close "$2" "${yk_ed_status}"
+  if [ "${yk_ed_status}" -ne 0 ]; then
+    yk_error "encoding failed."
+    yk_detail "${YK_WORK}/encode.log"
+    return 1
+  fi
+  yk_encode_mux "$3"
+}
+
+yk_progress_close() {
+  if [ "$2" -eq 0 ]; then
+    yk_progress_show "$1" final
+    return 0
+  fi
+  [ -e "${YK_WORK}/bar.open" ] || return 0
+  printf '\n' >&2
+  rm -f "${YK_WORK}/bar.open"
 }
 
 yk_encode_run() {
@@ -280,16 +320,10 @@ yk_encode_run() {
   yk_ed_audio="$(yk_audio_chain)"
   YK_AUDIO_FILTER="$(yk_join "${yk_ed_audio}")"
   if [ "${YK_ENCODER}" = mpeg2enc ]; then
-    yk_encode_with_mpeg2enc "$1" "$2" "$3"
-    yk_ed_status="$?"
-    [ "${yk_ed_status}" -eq 2 ] && return 1
-    [ "${yk_ed_status}" -eq 0 ] && return 0
-  elif (cd "${YK_WORK}" && yk_ffmpeg_disc mpg "$1" "$2" "$3") 2>"${YK_WORK}/encode.log"; then
-    return 0
+    yk_encode_with_mpeg2enc "$1" "$2"
+    return
   fi
-  yk_error "encoding failed."
-  yk_detail "${YK_WORK}/encode.log"
-  return 1
+  (cd "${YK_WORK}" && yk_ffmpeg_disc mpg "$1" "$2" "$3") 2>"${YK_WORK}/encode.log"
 }
 
 yk_stream_signature() {

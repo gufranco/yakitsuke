@@ -292,9 +292,11 @@ on_terminal() {
   local -a shell_words
   read -r -a shell_words <<<"${YAKITSUKE_TEST_SHELL:-sh}"
   progress_file 50000000 1.0x
+  local search_path
+  search_path="$(yk_test_farm_without gum)"
 
   # Act
-  run on_terminal env PATH="${PATH}" "${shell_words[@]}" "${YAKITSUKE_TESTS_DIR}/call.sh" call_progress "${BATS_TEST_TMPDIR:?}" 100 final
+  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${YAKITSUKE_TESTS_DIR}/call.sh" call_progress "${BATS_TEST_TMPDIR:?}" 100 final
 
   # Assert
   [[ "${output}" == *"Disc 1 of 1, encoding 100%  1.0x  0m00s left"* ]]

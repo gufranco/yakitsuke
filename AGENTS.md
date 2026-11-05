@@ -20,13 +20,14 @@ Guidance for anyone, human or agent, changing yakitsuke. What yakitsuke is and h
 ## Names
 
 - Globals carry `YK_`; function-scoped variables carry a per-function `yk_` prefix.
-- Settings come from `YAKITSUKE_<NAME>`, such as `YAKITSUKE_FFMPEG`; test switches are `YAKITSUKE_TERMINAL`, `YAKITSUKE_TEST_SHELLS`, `YAKITSUKE_TEST_RECORD` and `YAKITSUKE_TEST_IMAGE`.
-- Output goes through `yk_info`, `yk_say`, `yk_error` and `yk_warning`.
+- Settings come from `YAKITSUKE_<NAME>`, such as `YAKITSUKE_FFMPEG` and `YAKITSUKE_THEME`; test switches are `YAKITSUKE_TEST_SHELLS`, `YAKITSUKE_TEST_RECORD`, `YAKITSUKE_TEST_IMAGE` and `YAKITSUKE_TEST_GUM`.
+- Output goes through `yk_info`, `yk_say`, `yk_error` and `yk_warning`, which hand over to the `yk_ui_` helpers in [`lib/ui.sh`](lib/ui.sh) where gum draws.
 
 ## Behaviour
 
 - yakitsuke has one job, so a bare `yakitsuke` on a terminal asks for the video and the subtitle file directly.
 - Its options are grouped by subject on the help page, because there are many of them.
+- Where gum draws, a run that encodes asks to confirm after the summary, and the encode progress is a bar; a dry run and a run without a terminal never ask.
 - `--json` reports the source, the output folder, the media capacity in sectors, and each disc's image, cue sheet, size and whether `--resume` kept it; with `--dry-run`, each disc's planned start and length.
 
 ## Domain rules
@@ -44,7 +45,7 @@ Guidance for anyone, human or agent, changing yakitsuke. What yakitsuke is and h
 ## Release
 
 - `YAKITSUKE_VERSION` lives in [`lib/core.sh`](lib/core.sh).
-- The tap's `Formula/yakitsuke.rb` installs the bundled fonts next to the modules, and depends on `ffmpeg-full`, `mjpegtools` and `vcdimager`.
+- The tap's `Formula/yakitsuke.rb` installs the bundled fonts next to the modules, and depends on `ffmpeg-full`, `gum`, `mjpegtools` and `vcdimager`.
 
 ## Gaps against FAMILY.md
 

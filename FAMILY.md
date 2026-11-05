@@ -68,18 +68,19 @@ One plain page, in this order:
 5. `notes:`
 6. `examples:`
 
-No colour, no emoji, no bracketed level tags.
+The plain page has no colour, no emoji and no bracketed level tags. On a terminal where gum draws, the same page is turned into Markdown, each section a heading over a code block, and printed with `gum format` in the theme's help style.
 
 ## Input
 
 - Every setting is a long option. `--name value` and `--name=value` both work, and `--` ends the options.
 - A yes or no setting that is asked about interactively has both forms, such as `--verify` and `--no-verify`.
 - A setting may also come from an environment variable named after the tool, `<TOOL>_<SETTING>` in capitals, such as `KIYOME_PASSES=3` or `JIMAKU_LANGUAGE=pt-BR`. An option on the command line wins over the environment.
-- No member reads a bare name such as `PASSES`, and none takes its internal variables from the environment: a member either assigns each one outright, or its entry point clears every inherited variable with its internal prefix, such as `JM_`, before anything runs. Test-only switches follow the same rule, such as `JIMAKU_TERMINAL` and `JIMAKU_TEST_SHELLS`. `scripts/check-names.sh` fails lint on any other name.
+- The family's one shared setting is its look: `KODOUGU_THEME` and `KODOUGU_ACCENT`, read by every member, under Terminal interface.
+- No member reads a bare name such as `PASSES`, and none takes its internal variables from the environment: a member either assigns each one outright, or its entry point clears every inherited variable with its internal prefix, such as `JM_`, before anything runs. Test-only switches follow the same rule, such as `JIMAKU_TEST_GUM` and `JIMAKU_TEST_SHELLS`. `scripts/check-names.sh` fails lint on any other name.
 - Anything required and not given is asked for when stdin is a terminal: `Label [default]: ` on stderr, up to three tries for a required value.
 - Without a terminal the tool never waits on a prompt. It stops with the usage hint below.
 - A destructive step asks the person to type the device name: `Type disk4 to erase, or anything else to stop: `.
-- With no arguments on a terminal, a tool with several jobs offers a numbered menu headed `What would you like to do?`; a tool with one job asks for its inputs directly.
+- With no arguments on a terminal, a tool with several jobs offers a menu headed `What would you like to do?`, numbered on the plain interface and a `gum choose` list where gum draws; a tool with one job asks for its inputs directly.
 - A member that takes a disk accepts its device, such as `/dev/disk4`, or any volume mounted from it, such as `/Volumes/USB`, and works on the whole disk behind the volume. Its README shows both forms.
 
 ## Output
@@ -97,9 +98,32 @@ No colour, no emoji, no bracketed level tags.
 
 - A long step shows one progress line: `<Verb> NNN%  <rate>  XmYYs left`. On a terminal it redraws in place; otherwise it prints once per 10 percent.
 - The last line states the result in a full sentence, such as `Ejected. /dev/disk4 is safe to remove.`
-- Every line printed to a terminal fits in 80 columns, the default width of Terminal, iTerm2, xterm and GNOME Terminal. A longer message wraps between words, and a summary line continues under its value. A single word wider than 80 columns, such as a long path, is printed whole on its own line. Sent to a pipe or a file, a message stays on one line, so a script can read it. `doctor` is exempt: its rows are technical, so each stays on one line at any width.
-- Text that holds a path or any other value of unbounded length goes through the member's say, error and warning helpers, which do the wrapping. `<TOOL>_TERMINAL=1` makes a test behave as a terminal, and `test/width.bats` checks that `help` and `version` stay within 80 columns.
+- A message is printed as one line, and the terminal wraps it at its own width. No member breaks a message into lines itself, so a narrow window, a wide one and a pipe all get the same text, and a script reads one message per line.
+- Text written ahead of time, such as the help page and the fixed lines of a summary block, keeps its lines within 80 columns, the default width of Terminal, iTerm2, xterm and GNOME Terminal. `test/width.bats` checks that `help` and `version` stay within them.
 - A command whose result a script would read offers `--json`, which prints that result as one JSON object on stdout in place of the text form.
+
+## Terminal interface
+
+Every member draws its terminal interface with [gum](https://github.com/charmbracelet/gum), and every member looks the same.
+
+- gum draws only where it can: prompts when stdin and stderr are terminals, diagnostics when stderr is one, and results when stdout is one, each only when `gum` is on `PATH`. Anywhere else the plain interface above runs, byte for byte, so pipes, files, scripts, `--json` and the golden transcripts never change. A terminal without gum gets the plain interface too, and `doctor` reports gum missing.
+- One look for the family: a rounded header box with the tool's name, version and tagline opens the menu; `gum choose` for a menu or a choice, `--no-limit` for several, whose header names `x`, the key gum 2.0.2 marks with, and `--label-delimiter "|"` for a label that carries a value; `gum filter` for a long list or a file; `gum input` for a value, with a default shown as its placeholder and taken when the answer is empty, never prefilled with `--value`, which makes typing append to it, and `--password` for a secret; `gum write` for text, where Enter submits and Ctrl+J adds a line; `gum confirm` for yes or no; `gum spin --spinner dot` while a short step runs; a rounded summary box before a long or destructive run; a thick red danger box above the typed confirmation; a rounded table with a state cell coloured ok, warn or error; the progress line with a bar in the accent; `gum pager` for long output; log lines `INFO`, `WARN` and `ERROR` in the theme's colours, where a message whose first word is capitalized, not an acronym, continues in lowercase after the prefix; badges for a short state; and a bold closing sentence in the ok colour.
+- gum's own `gum file` redraws from the top of the screen and hides its header, `gum table --print` styles the first data row as the header and cannot colour a cell, and `gum log` joins lines and breaks words at the screen's edge. No member uses them: files are picked with `gum filter`, tables come from `lib/table.awk` inside a `gum style` box, and log lines are drawn by `<prefix>_ui_log`, one line per message.
+- `gum style` drops colour it reads from stdin, so coloured text is passed to it as arguments. `gum spin` draws on stdout, so a member sends it to stderr and lets it wait on the step's process, which runs in the background with its diagnostics held in a file until the spinner stops. The step runs with `<PREFIX>_UI_STEP` set, so its warnings and errors are drawn as they would be on the terminal.
+- The palette comes from a theme: `--theme NAME`, else `<TOOL>_THEME`, else `KODOUGU_THEME`, else `kodougu`. The themes are `kodougu`, `catppuccin-mocha`, `catppuccin-latte`, `dracula`, `nord`, `gruvbox`, `tokyo-night` and `mono`, each with an accent, ok, warning, error, muted, text and surface colour and a `gum format` style. `<TOOL>_ACCENT`, else `KODOUGU_ACCENT`, replaces only the accent with a colour such as `#CBA6F7`. An unknown theme or a malformed colour stops the tool with the bad value error below. `NO_COLOR` switches every theme to `mono`, since gum's `CLICOLOR_FORCE` outranks it.
+- `lib/ui.sh` holds the themes and every drawing helper, and `lib/table.awk` the table. A member calls them and never calls gum directly from its own modules.
+- `test/ui-kit.bats` calls every helper in `lib/ui.sh` directly, so each member covers the whole module whatever it draws. Tests drive the gum path with `<TOOL>_TEST_GUM=1` and `test/bin/gum`, a shim first on `PATH` in every test that records each call in `<TOOL>_TEST_GUM_LOG` and answers from `<TOOL>_TEST_GUM_ANSWERS`, one line per prompt, `<cancel>` for Escape. gum needs a terminal, so CI cannot run the real one; the screens below run the real one.
+- The tap's formula for every member depends on `gum`.
+
+## Screens
+
+Every README shows the tool running for real: an animated `screens/hero.gif` under the introduction, the main flow from the first prompt to the closing line, and a collapsed gallery of PNG stills, one per screen, from the summary and the danger box to `doctor`, help and the themes.
+
+- [VHS](https://github.com/charmbracelet/vhs) records them from the real tool and real gum, never from mockups. `make screens` runs `screens/record.sh`, which builds fresh fixtures with `screens/prepare.sh` in `/Users/Shared/demo` before each tape, records it, cleans up with `screens/cleanup.sh`, and crops each still to its content with rounded corners.
+- A disk tool works on disk images that `prepare.sh` creates and attaches, addresses them by mount point, and gets root through the test suite's `sudo` shim, so a recording never reaches a real disk. Its tapes end in `.tape.in`, because they type the device name, which `record.sh` fills in. A service tool removes what it created.
+- `screens/common.tape` sets one look: the Catppuccin Mocha terminal theme, JetBrainsMono Nerd Font at 24 px, 1600 px wide, with the default `kodougu` theme for the tool.
+- The screens are recorded on macOS, which every disk tool needs; `record.sh` refuses elsewhere and names the missing tool when `vhs` or `magick` is absent.
+- A change that alters what a screen shows records the screens again in the same commit.
 
 ## Diagnostics
 
@@ -125,7 +149,7 @@ dd                 ok       /bin/dd
 mcopy              missing  mtools, needed for Windows ISOs and format
 ```
 
-Each row is `printf '%-18s %-8s %s\n'`: the dependency; `ok`, `missing` or `warn`; then the path when found, followed by a short note when one matters, or the remedy when not.
+Each row is `printf '%-18s %-8s %s\n'`, and where gum draws the rows form a table followed by the closing sentence: the dependency; `ok`, `missing` or `warn`; then the path when found, followed by a short note when one matters, or the remedy when not.
 
 A row for a core tool, such as `awk`, `sed`, `dd`, `od`, `cmp`, `tr` or `date`, names its flavor and version after the path, so a bug report says which tools ran:
 
@@ -189,7 +213,7 @@ Every tool that can be installed in more than one version on a supported system 
 - Release tooling is pnpm, pinned through `packageManager` in `package.json`, running semantic-release. The release job installs it with `pnpm install --frozen-lockfile` and stops on `pnpm audit --audit-level high`.
 - Dependabot updates the GitHub Actions and the release tooling, and Renovate updates the runner labels, `.ruby-version` and the Gemfile, so each update arrives once. Both look for updates three times a day, at 05:00, 13:00 and 21:00 UTC. Every bot pull request merges itself once CI passes: when `ci` finishes on a pull request from Dependabot, Renovate or any other bot, `bot-merge.yml` checks that every check on that commit passed, squash-merges it at that commit with a fixed commit body so upstream release notes never trigger a release, then starts `ci` on `main` with `gh workflow run`, since a merge made with `GITHUB_TOKEN` starts no workflow by itself. Renovate's own automerge never merged anything, so `bot-merge.yml` merges its pull requests too. None is merged by hand.
 - `actions/*` and `github/*` actions are referenced by version tag, such as `actions/checkout@v7.0.1`; every other action is pinned to a full commit SHA with its version in a trailing comment.
-- These files are identical in every member apart from the tool's own name: `FAMILY.md`, `.editorconfig`, `.yamllint.yml`, `.github/actionlint.yaml`, `.github/dependabot.yml`, `renovate.json`, `.github/workflows/release.yml`, `.github/workflows/formula.yml`, `.github/workflows/bot-merge.yml`, `Gemfile`, `Gemfile.lock`, `.ruby-version`, `.simplecov`, `.github/scripts/toolset.sh`, `.github/scripts/set-version.sh`, `.github/scripts/ci-state.sh`, `test/ci-state.bats`, `scripts/coverage-gate.py`, `scripts/bashcov-run.rb` and `scripts/linux-coverage.sh`.
+- These files are identical in every member apart from the tool's own name: `FAMILY.md`, `.editorconfig`, `.yamllint.yml`, `.github/actionlint.yaml`, `.github/dependabot.yml`, `renovate.json`, `.github/workflows/release.yml`, `.github/workflows/formula.yml`, `.github/workflows/bot-merge.yml`, `Gemfile`, `Gemfile.lock`, `.ruby-version`, `.simplecov`, `.github/scripts/toolset.sh`, `.github/scripts/set-version.sh`, `.github/scripts/ci-state.sh`, `test/ci-state.bats`, `lib/ui.sh`, `lib/table.awk`, `test/bin/gum`, `test/ui-kit.bats`, `screens/common.tape`, `screens/record.sh`, `screens/finish.sh`, `scripts/coverage-gate.py`, `scripts/bashcov-run.rb` and `scripts/linux-coverage.sh`.
 - A script that only CI or the release runs lives in `.github/scripts/`: `toolset.sh`, `set-version.sh` and `ci-state.sh`. A script that a `make` target runs lives in `scripts/`, so everything a contributor can run locally sits in one place. `make lint` checks both folders.
 
 ## Tests
@@ -221,6 +245,7 @@ Every tool that can be installed in more than one version on a supported system 
   | `make test-all` | The suites under every installed shell, both builds of bash and zsh on macOS |
   | `make test-linux` | The suites in the Ubuntu container |
   | `make coverage` | bashcov on the Mac and in the container, merged, gated at 100% |
+  | `make screens` | the README screens, recorded from the real tool with VHS, on macOS |
   | `make check` | `lint` and `test` |
   | `make install` | The tool, man page and completions under `PREFIX` |
 

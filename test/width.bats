@@ -26,7 +26,7 @@ widest_line() {
   local page widest
 
   # Act
-  page="$(YAKITSUKE_TERMINAL=1 yk_test_run help)"
+  page="$(yk_test_run help)"
 
   # Assert
   widest="$(printf '%s\n' "${page}" | widest_line)"
@@ -38,28 +38,14 @@ widest_line() {
   local page widest
 
   # Act
-  page="$(YAKITSUKE_TERMINAL=1 yk_test_run version)"
+  page="$(yk_test_run version)"
 
   # Assert
   widest="$(printf '%s\n' "${page}" | widest_line)"
   [[ "${widest}" -le 80 ]]
 }
 
-@test "an error longer than 80 columns wraps between words" {
-  # Arrange
-  local message="the subtitle file holds a style this tool cannot burn, so those lines are drawn as plain white text"
-
-  # Act
-  YAKITSUKE_TERMINAL=1 run yk_test_call yk_error "${message}"
-
-  # Assert
-  [[ "${status}" -eq 0 ]]
-  [[ "${#lines[@]}" -eq 2 ]]
-  [[ "${lines[0]}" == "yakitsuke: the subtitle file holds a style this tool cannot burn, so those lines" ]]
-  [[ "${lines[1]}" == "are drawn as plain white text" ]]
-}
-
-@test "an error sent to a pipe stays on one line, however long" {
+@test "an error stays on one line, however long" {
   # Arrange
   local message="the subtitle file holds a style this tool cannot burn, so those lines are drawn as plain white text"
 
@@ -71,25 +57,12 @@ widest_line() {
   [[ "${output}" == "yakitsuke: ${message}" ]]
 }
 
-@test "a word wider than 80 columns stays whole on its own line" {
-  # Arrange
-  local video="/Volumes/Archive/Films/The-Complete-Restored-Print-Of-Every-Reel-1968-To-1985.mkv"
-
-  # Act
-  YAKITSUKE_TERMINAL=1 run yk_test_call yk_info "Source: ${video}"
-
-  # Assert
-  [[ "${status}" -eq 0 ]]
-  [[ "${lines[0]}" == "Source:" ]]
-  [[ "${lines[1]}" == "        ${video}" ]]
-}
-
-@test "a doctor row stays on one line on a terminal, however long" {
+@test "a doctor row stays on one line, however long" {
   # Arrange
   local expected="sed                ok       /opt/homebrew/opt/gnu-sed/libexec/gnubin/sed, gnu 4.10"
 
   # Act
-  YAKITSUKE_TERMINAL=1 run yk_test_call yk_doctor_row "sed" ok "/opt/homebrew/opt/gnu-sed/libexec/gnubin/sed, gnu 4.10"
+  run yk_test_call yk_doctor_row "sed" ok "/opt/homebrew/opt/gnu-sed/libexec/gnubin/sed, gnu 4.10"
 
   # Assert
   [[ "${status}" -eq 0 ]]

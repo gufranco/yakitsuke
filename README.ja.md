@@ -19,9 +19,13 @@
 
 </div>
 
-コマンドは一つ、テストは 205 件、シェルモジュールは 11 個。POSIX システムと、操作する映像ツール以外に実行時の依存はありません。`yakitsuke` は「焼き付け」です。映画を CD に焼き、字幕を映像に焼き付けます。姉妹ツールの [kakikomi](https://github.com/gufranco/kakikomi) と [kiyome](https://github.com/gufranco/kiyome) はディスクの書き込みと消去を行います。
+コマンドは一つ、テストは 264 件、シェルモジュールは 12 個。POSIX システム、gum、操作する映像ツール以外に実行時の依存はありません。`yakitsuke` は「焼き付け」です。映画を CD に焼き、字幕を映像に焼き付けます。姉妹ツールの [kakikomi](https://github.com/gufranco/kakikomi) と [kiyome](https://github.com/gufranco/kiyome) はディスクの書き込みと消去を行います。
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="ターミナルで実行した yakitsuke：最初の入力から結果まで" width="800">
+</p>
 
 ```console
 $ yakitsuke --output-dir ~/Movies trailer.mp4 trailer.srt
@@ -58,6 +62,7 @@ Wrote 1 Video CD image(s) to ~/Movies.
 
 | ツール | 用途 | インストール |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | 端末の画面：メニュー、入力、表、配色 | `brew install gum`。Homebrewのformulaが自動でインストールします |
 | libass と zimg を含む `ffmpeg` | デコード、フィルタ、字幕、16 ビット色変換 | `brew install ffmpeg-full`、または `apt install ffmpeg` |
 | `vcdimager` | VCD 2.0 または SVCD 1.0 の BIN/CUE イメージを作成 | `brew install vcdimager`、または `apt install vcdimager` |
 | `mjpegtools` | より高画質な MPEG-1 エンコーダの `mpeg2enc` と `mplex` | `brew install mjpegtools`、または `apt install mjpegtools` |
@@ -84,6 +89,7 @@ make install
 
 ```console
 $ yakitsuke doctor
+gum                ok       /opt/homebrew/bin/gum, 2.0.2
 ffmpeg             ok       /opt/homebrew/bin/ffmpeg
 ffprobe            ok       /opt/homebrew/bin/ffprobe
 vcdxbuild          ok       /opt/homebrew/bin/vcdxbuild
@@ -121,6 +127,7 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 | `--sub-track N`、`--sub-offset SECONDS` | 内蔵トラックの焼き付け、全行のタイミング移動 |
 | `--preview SECONDS`、`--dry-run` | 短いサンプルだけをエンコード、または計画だけを表示 |
 | `--json` | 結果を1つのJSONオブジェクトとして出力します（スクリプト向け） |
+| `--theme <name>` | 端末の画面の配色 |
 | `--resume`、`--force` | 完成済みのディスクを残すか、上書きするか |
 
 ```bash
@@ -132,6 +139,14 @@ yakitsuke --resume movie.mkv movie.srt         # 中断した処理を完了
 ```
 
 `--overlap=10` の形も使え、`--` でオプションが終わります。yakitsuke はファミリー共通のコマンドライン規約に従います。内容は [FAMILY.md](FAMILY.md) にあります。`YAKITSUKE_FORMAT=svcd` でスーパービデオ CD が既定になります。
+
+### テーマ
+
+`gum`がインストールされた端末では、yakitsukeはメニュー、入力、表、メッセージをgumで描きます。パイプやスクリプトでは、出力はプレーンテキストのままです。配色は`--theme`、なければ`YAKITSUKE_THEME`、なければ`KODOUGU_THEME`で選びます。最後のものはkodouguのすべてのツールが共有します：`kodougu` （既定）、`catppuccin-mocha`、`catppuccin-latte`、`dracula`、`nord`、`gruvbox`、`tokyo-night`、`mono`。`KODOUGU_ACCENT=#RRGGBB`はアクセント色だけを置き換え、`NO_COLOR`は色を消します。
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="picture"></a>
 
@@ -183,6 +198,35 @@ yakitsuke --resume movie.mkv movie.srt         # 中断した処理を完了
 
 Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その新しい Homebrew 版、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。macOS 標準のツールのうち Homebrew に新しい版があるものは、bash と zsh から iconv と file まで、両方の版でテストします。CI はそれぞれで全テストを実行し、`yakitsuke doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
 
+<a id="screens"></a>
+
+## 画面
+
+<details>
+<summary><code>make screens</code> で実際の実行から録画したすべての画面</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="yakitsuke: 概要と確認"><br><sub>概要と確認</sub></td>
+<td width="50%" valign="top"><img src="screens/progress.png" alt="yakitsuke: 進捗バー"><br><sub>進捗バー</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/result.png" alt="yakitsuke: 結果"><br><sub>結果</sub></td>
+<td width="50%" valign="top"><img src="screens/dry-run.png" alt="yakitsuke: 何も変えないドライラン"><br><sub>何も変えないドライラン</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/error.png" alt="yakitsuke: エラー"><br><sub>エラー</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="yakitsuke: doctor が必要なツールをすべて確認"><br><sub>doctor が必要なツールをすべて確認</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="yakitsuke: 6 つのテーマでのバージョン表示"><br><sub>6 つのテーマでのバージョン表示</sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="yakitsuke: ヘルプ"><br><sub>ヘルプ</sub></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## 開発
@@ -195,6 +239,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 | `make test-all` | すべてのシェルで同じテスト。macOS では bash と zsh の両方の版を含みます |
 | `make test-linux` | Ubuntu コンテナで同じテスト |
 | `make coverage` | この Mac と Ubuntu コンテナでの bashcov の行カバレッジを合算し、CI が強制する 100% のゲート |
+| `make screens` | macOS で、README の画面を実物のツールから VHS で録画します |
 
 テストは ffmpeg、`mpeg2enc`、`vcdimager` で実際のクリップをエンコードします。故障だけを `PATH` 上の小さなラッパーで注入します。`main` への push で CI が通ると semantic-release が動き、`feat` か `fix` のコミットでリリースを公開し、[`lib/core.sh`](lib/core.sh) の `YAKITSUKE_VERSION` と CHANGELOG を更新し、Homebrew の formula を更新します。
 

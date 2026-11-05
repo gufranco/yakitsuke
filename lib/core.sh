@@ -11,7 +11,7 @@ yk_version() {
 
 yk_info() {
   [ "${YK_JSON}" = no ] || return 0
-  yk_say 8 "$*"
+  yk_say "$*"
 }
 
 yk_json_string() {
@@ -32,49 +32,24 @@ yk_json_string() {
     END { printf "\"%s\"", out }'
 }
 
-yk_wrap() {
-  awk -v width="${YK_WIDTH}" -v indent="$1" '
-    function pad(n,   s) {
-      s = ""
-      while (n-- > 0) { s = s " " }
-      return s
-    }
-    length($0) <= width { print; next }
-    {
-      match($0, /^ */)
-      n = split($0, word, " ")
-      out = substr($0, 1, RLENGTH) word[1]
-      for (i = 2; i <= n; i++) {
-        if (length(out) + 1 + length(word[i]) > width) {
-          print out
-          out = pad(indent) word[i]
-        } else {
-          out = out " " word[i]
-        }
-      }
-      print out
-    }'
-}
-
-yk_terminal() {
-  [ "${YAKITSUKE_TERMINAL:-}" = 1 ] || [ -t 1 ]
-}
-
 yk_say() {
-  yk_sy_text="$2"
-  if [ "${#yk_sy_text}" -le "${YK_WIDTH}" ] || ! yk_terminal; then
-    printf '%s\n' "${yk_sy_text}"
-    return 0
-  fi
-  printf '%s\n' "${yk_sy_text}" | yk_wrap "$1"
+  printf '%s\n' "$1"
 }
 
 yk_warning() {
-  yk_say 0 "${YK_PROG}: warning: $*" >&2
+  if yk_ui_err; then
+    yk_ui_log WARN "$*"
+    return 0
+  fi
+  yk_say "${YK_PROG}: warning: $*" >&2
 }
 
 yk_error() {
-  yk_say 0 "${YK_PROG}: $*" >&2
+  if yk_ui_err; then
+    yk_ui_log ERROR "$*"
+    return 0
+  fi
+  yk_say "${YK_PROG}: $*" >&2
 }
 
 yk_detail() {

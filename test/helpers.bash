@@ -10,6 +10,8 @@ for yk_candidate in "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/ffmpeg-full/bin/ffmpe
   fi
 done
 export YAKITSUKE_TESTS_DIR REPO_DIR YAKITSUKE_TEST_FFMPEG
+PATH="${YAKITSUKE_TESTS_DIR}/bin:${PATH}"
+export PATH
 
 yk_test_path() {
   if [[ -n "${SHIMS:-}" && -d "${SHIMS}" ]]; then
@@ -17,6 +19,24 @@ yk_test_path() {
   else
     printf '%s\n' "${PATH}"
   fi
+}
+
+yk_test_farm_without() {
+  local farm="${BATS_TEST_TMPDIR:?}/farm"
+  local dir tool
+  local search_path
+  local -a dirs batch
+  mkdir -p "${farm}"
+  search_path="$(yk_test_path)"
+  IFS=: read -r -a dirs <<<"${search_path}"
+  for dir in "${dirs[@]}"; do
+    batch=()
+    for tool in "${dir}"/*; do
+      [[ -x "${tool}" && ! -e "${farm}/${tool##*/}" && "${tool##*/}" != "$1" ]] && batch+=("${tool}")
+    done
+    [[ ${#batch[@]} -eq 0 ]] || ln -s "${batch[@]}" "${farm}/"
+  done
+  printf '%s\n' "${farm}"
 }
 
 yk_test_shim() {

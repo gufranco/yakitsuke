@@ -19,9 +19,13 @@
 
 </div>
 
-一条命令，205 个测试，11 个 shell 模块。除了 POSIX 系统和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
+一条命令，264 个测试，12 个 shell 模块。除了 POSIX 系统、gum 和它调用的视频工具，运行时没有其他依赖。`yakitsuke` 是日语「焼き付け」，意为烧录：把电影烧到光盘上，把字幕烧进画面。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 和 [kiyome](https://github.com/gufranco/kiyome) 负责写入和擦除磁盘。
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="在终端中运行的 yakitsuke：从第一个输入到结果" width="800">
+</p>
 
 ```console
 $ yakitsuke --output-dir ~/Movies trailer.mp4 trailer.srt
@@ -58,6 +62,7 @@ Wrote 1 Video CD image(s) to ~/Movies.
 
 | 工具 | 用途 | 安装 |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | 终端界面：菜单、输入、表格和配色 | `brew install gum`。Homebrew formula 会自动安装 |
 | 带 libass 和 zimg 的 `ffmpeg` | 解码、滤镜、字幕、16 位色彩转换 | `brew install ffmpeg-full`，或 `apt install ffmpeg` |
 | `vcdimager` | 生成 VCD 2.0 或 SVCD 1.0 的 BIN/CUE 镜像 | `brew install vcdimager`，或 `apt install vcdimager` |
 | `mjpegtools` | 更好的 MPEG-1 编码器 `mpeg2enc` 和 `mplex` | `brew install mjpegtools`，或 `apt install mjpegtools` |
@@ -84,6 +89,7 @@ make install
 
 ```console
 $ yakitsuke doctor
+gum                ok       /opt/homebrew/bin/gum, 2.0.2
 ffmpeg             ok       /opt/homebrew/bin/ffmpeg
 ffprobe            ok       /opt/homebrew/bin/ffprobe
 vcdxbuild          ok       /opt/homebrew/bin/vcdxbuild
@@ -121,6 +127,7 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 | `--sub-track N`、`--sub-offset SECONDS` | 烧录内嵌字幕轨，整体平移所有字幕 |
 | `--preview SECONDS`、`--dry-run` | 只编码一小段样本，或只打印计划 |
 | `--json` | 以一个 JSON 对象输出结果，供脚本使用 |
+| `--theme <name>` | 终端界面的配色 |
 | `--resume`、`--force` | 保留已完成的光盘，或覆盖它们 |
 
 ```bash
@@ -132,6 +139,14 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 ```
 
 也可以写成 `--overlap=10`，`--` 表示选项结束。yakitsuke 遵循同系列工具共用的命令行约定，详见 [FAMILY.md](FAMILY.md)。设置 `YAKITSUKE_FORMAT=svcd` 后默认生成 SVCD。
+
+### 主题
+
+在装有 `gum` 的终端里，yakitsuke 用 gum 绘制菜单、输入、表格和消息；在管道或脚本中，输出仍是纯文本。配色依次由 `--theme`、`YAKITSUKE_THEME`、`KODOUGU_THEME` 决定，最后一个由所有 kodougu 工具共用：`kodougu`（默认）、`catppuccin-mocha`、`catppuccin-latte`、`dracula`、`nord`、`gruvbox`、`tokyo-night` 或 `mono`。`KODOUGU_ACCENT=#RRGGBB` 只替换强调色，`NO_COLOR` 关闭颜色。
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="picture"></a>
 
@@ -183,6 +198,35 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 
 它能在五种常用工具集上运行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 自带的工具、Homebrew 中更新的版本或 Homebrew 的 uutils 工具。macOS 自带而 Homebrew 有更新版本的工具，从 bash 和 zsh 到 iconv 和 file，两个版本都会测试。CI 在每种工具集上运行全部测试，`yakitsuke doctor` 会列出每个核心工具的类型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，让错误报告说明用的是哪些工具。
 
+<a id="screens"></a>
+
+## 界面
+
+<details>
+<summary>全部界面，均由 <code>make screens</code> 录自真实运行</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="yakitsuke: 概要与确认"><br><sub>概要与确认</sub></td>
+<td width="50%" valign="top"><img src="screens/progress.png" alt="yakitsuke: 进度条"><br><sub>进度条</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/result.png" alt="yakitsuke: 结果"><br><sub>结果</sub></td>
+<td width="50%" valign="top"><img src="screens/dry-run.png" alt="yakitsuke: 不做任何更改的试运行"><br><sub>不做任何更改的试运行</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/error.png" alt="yakitsuke: 错误"><br><sub>错误</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="yakitsuke: doctor 检查所需的每个工具"><br><sub>doctor 检查所需的每个工具</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="yakitsuke: 六种主题下的版本标记"><br><sub>六种主题下的版本标记</sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="yakitsuke: 帮助页"><br><sub>帮助页</sub></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## 开发
@@ -195,6 +239,7 @@ yakitsuke --resume movie.mkv movie.srt         # 完成被中断的任务
 | `make test-all` | 在每种 shell 下运行同样的测试，macOS 上包括 bash 和 zsh 的两个版本 |
 | `make test-linux` | 在 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 合并这台 Mac 与 Ubuntu 容器中的 bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
+| `make screens` | 在 macOS 上用 VHS 从真实工具录制 README 的界面 |
 
 测试用 ffmpeg、`mpeg2enc` 和 `vcdimager` 编码真实片段，只有故障通过 `PATH` 上的小包装程序注入。推送到 `main` 且 CI 通过后会运行 semantic-release：`feat` 或 `fix` 提交会发布新版本，更新 [`lib/core.sh`](lib/core.sh) 里的 `YAKITSUKE_VERSION` 和 CHANGELOG，并更新 Homebrew formula。
 

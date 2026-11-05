@@ -5,7 +5,7 @@ _yakitsuke() {
   local cur prev words options
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  options="--format --aspect --cd74 --cd80 --cd90 --disc-minutes --overlap --scene-snap --title --chapters --ntsc --pal --film --letterbox --crop --borders --deinterlace --denoise --sharpen --no-sharpen --no-color-convert --audio-track --normalize --sub-track --sub-color --sub-box --sub-offset --sub-style --encoder --output-dir --keep-mpeg --force --resume --preview --dry-run --json"
+  options="--format --aspect --cd74 --cd80 --cd90 --disc-minutes --overlap --scene-snap --title --chapters --ntsc --pal --film --letterbox --crop --borders --deinterlace --denoise --sharpen --no-sharpen --no-color-convert --audio-track --normalize --sub-track --sub-color --sub-box --sub-offset --sub-style --encoder --output-dir --keep-mpeg --force --resume --preview --dry-run --json --theme"
 
   case "${prev}" in
   --borders) words="auto off" ;;
@@ -15,6 +15,7 @@ _yakitsuke() {
   --encoder) words="auto mpeg2enc ffmpeg" ;;
   --format) words="vcd svcd" ;;
   --aspect) words="auto 4:3 16:9" ;;
+  --theme) words="kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono" ;;
   --output-dir)
     COMPREPLY=($(compgen -d -- "${cur}"))
     return

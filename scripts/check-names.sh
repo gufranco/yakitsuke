@@ -11,7 +11,7 @@ fi
 
 unprefixed=$(cat "${root}"/bin/yakitsuke "${root}"/lib/*.sh |
   grep -oE '[$][{]?[A-Z][A-Z0-9_]*' | sed 's/^[$][{]*//' | sort -u |
-  grep -vE '^(YK|YAKITSUKE)_' | grep -vxE 'HOME|PATH|TMPDIR|ZSH_VERSION|HOMEBREW_PREFIX' || true)
+  grep -vE '^(YK|YAKITSUKE)_' | grep -vxE 'HOME|PATH|TMPDIR|ZSH_VERSION|HOMEBREW_PREFIX|KODOUGU_THEME|KODOUGU_ACCENT|NO_COLOR' || true)
 if [ -n "${unprefixed}" ]; then
   printf 'environment variable without the YAKITSUKE_ prefix:\n%s\n' "${unprefixed}" >&2
   exit 1

@@ -19,9 +19,13 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 205 tests, 11 shell modules, and no runtime beyond a POSIX system and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
+One command, 264 tests, 12 shell modules, and no runtime beyond a POSIX system, gum and the video tools it drives. `yakitsuke` is 焼き付け, Japanese for burning in: it burns a film onto CD and burns the subtitles into the picture. Its companions [kakikomi](https://github.com/gufranco/kakikomi) and [kiyome](https://github.com/gufranco/kiyome) write and wipe disks.
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="yakitsuke running in a terminal, from the first prompt to the result" width="800">
+</p>
 
 ```console
 $ yakitsuke --output-dir ~/Movies trailer.mp4 trailer.srt
@@ -58,6 +62,7 @@ Wrote 1 Video CD image(s) to ~/Movies.
 
 | Tool | Why | Install |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | The terminal interface: menus, prompts, tables and colours | `brew install gum`. Installed automatically by the Homebrew formula |
 | `ffmpeg` with libass and zimg | Decoding, filtering, subtitles, 16-bit colour conversion | `brew install ffmpeg-full`, or `apt install ffmpeg` |
 | `vcdimager` | Writes the VCD 2.0 or SVCD 1.0 BIN/CUE image | `brew install vcdimager`, or `apt install vcdimager` |
 | `mjpegtools` | `mpeg2enc` and `mplex`, the better MPEG-1 encoder | `brew install mjpegtools`, or `apt install mjpegtools` |
@@ -84,6 +89,7 @@ make install
 
 ```console
 $ yakitsuke doctor
+gum                ok       /opt/homebrew/bin/gum, 2.0.2
 ffmpeg             ok       /opt/homebrew/bin/ffmpeg
 ffprobe            ok       /opt/homebrew/bin/ffprobe
 vcdxbuild          ok       /opt/homebrew/bin/vcdxbuild
@@ -121,6 +127,7 @@ ffmpeg zscale      ok       /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg
 | `--sub-track N`, `--sub-offset SECONDS` | Burn an embedded track, shift every line |
 | `--preview SECONDS`, `--dry-run` | Encode a short sample, or only print the plan |
 | `--json` | Print the result as one JSON object, for scripts |
+| `--theme <name>` | Colours of the terminal interface |
 | `--resume`, `--force` | Keep finished discs, or overwrite them |
 
 ```bash
@@ -132,6 +139,14 @@ yakitsuke --resume movie.mkv movie.srt         # finish an interrupted run
 ```
 
 `--overlap=10` works too, and `--` ends the options. `YAKITSUKE_FORMAT=svcd` makes Super Video CD the default. yakitsuke follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
+
+### Themes
+
+On a terminal with `gum` installed, yakitsuke draws its menus, prompts, tables and messages with gum; in a pipe or a script the output stays plain text. `--theme`, else `YAKITSUKE_THEME`, else `KODOUGU_THEME` picks the colours, the last one shared by every kodougu tool: `kodougu` (default), `catppuccin-mocha`, `catppuccin-latte`, `dracula`, `nord`, `gruvbox`, `tokyo-night` or `mono`. `KODOUGU_ACCENT=#RRGGBB` replaces only the accent, and `NO_COLOR` turns colour off.
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="picture"></a>
 
@@ -183,6 +198,35 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites r
 
 Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with the tools it ships, Homebrew's newer builds of them, or Homebrew's uutils tools. Every tool macOS ships that Homebrew also builds newer, from bash and zsh to iconv and file, is tested in both builds. CI runs the whole suite on each, and `yakitsuke doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
 
+<a id="screens"></a>
+
+## Screens
+
+<details>
+<summary>Every screen, recorded from a real run with <code>make screens</code></summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="yakitsuke: The summary, then the confirmation"><br><sub>The summary, then the confirmation</sub></td>
+<td width="50%" valign="top"><img src="screens/progress.png" alt="yakitsuke: The progress bar"><br><sub>The progress bar</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/result.png" alt="yakitsuke: The result"><br><sub>The result</sub></td>
+<td width="50%" valign="top"><img src="screens/dry-run.png" alt="yakitsuke: A dry run, changing nothing"><br><sub>A dry run, changing nothing</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/error.png" alt="yakitsuke: An error"><br><sub>An error</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="yakitsuke: doctor checks every tool it needs"><br><sub>doctor checks every tool it needs</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="yakitsuke: The version badge in six themes"><br><sub>The version badge in six themes</sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="yakitsuke: The help page"><br><sub>The help page</sub></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## Development
@@ -195,6 +239,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | `make test-all` | The same tests under every shell, both builds of bash and zsh included on macOS |
 | `make test-linux` | The same tests in an Ubuntu container |
 | `make coverage` | bashcov line coverage on this Mac and in the Ubuntu container, merged, with the 100% gate CI enforces |
+| `make screens` | Record the README screens from the real tool with VHS, on macOS |
 
 The tests encode real clips with ffmpeg, `mpeg2enc` and `vcdimager`; only failures are injected, through small wrappers on `PATH`. Once CI passes on a push to `main`, semantic-release runs: a `feat` or `fix` commit publishes a release, updates `YAKITSUKE_VERSION` in [`lib/core.sh`](lib/core.sh) and the CHANGELOG, and bumps the Homebrew formula.
 

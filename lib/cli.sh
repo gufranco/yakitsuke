@@ -4,6 +4,14 @@
 . "${YK_LIB:?}/state.sh"
 
 yk_usage() {
+  if yk_ui_out; then
+    yk_usage_text | yk_ui_markdown | yk_gum format --theme "${YK_UI_HELP}"
+    return 0
+  fi
+  yk_usage_text
+}
+
+yk_usage_text() {
   cat <<'USAGE'
 yakitsuke - burn any video onto Video CD or Super Video CD images
 
@@ -68,6 +76,7 @@ encoder and output:
   --preview SECONDS          encode one short sample from the middle
   --dry-run                  print the plan and stop
   --json                     print the result as one JSON object, for scripts
+  --theme NAME               colours of the terminal interface, see notes
 
 environment:
   YAKITSUKE_FORMAT           vcd or svcd, the default for --format
@@ -79,6 +88,12 @@ notes:
   ends the options. A file named help, doctor or version is encoded by giving
   its path, such as ./help.
 
+  On a terminal with gum installed, yakitsuke draws its prompts, summary and
+  progress with gum. --theme, else YAKITSUKE_THEME, else KODOUGU_THEME picks
+  the colours: kodougu, catppuccin-mocha, catppuccin-latte, dracula, nord,
+  gruvbox, tokyo-night or mono. KODOUGU_ACCENT=#RRGGBB replaces only the
+  accent, and NO_COLOR turns colour off.
+
 examples:
   yakitsuke movie.mkv
   yakitsuke --cd74 movie.mkv movie.srt
@@ -87,17 +102,56 @@ USAGE
 }
 
 yk_cli_hint() {
-  yk_say 0 "${YK_PROG}: $1. run '${YK_PROG} help' for usage." >&2
+  yk_error "$1. run '${YK_PROG} help' for usage."
 }
 
 yk_cli_version() {
-  yk_version
   yk_cv_platform="$(uname -sr)" || yk_cv_platform="unknown"
+  if yk_ui_out; then
+    yk_cv_text="$(yk_version)"
+    yk_cv_badge="$(yk_ui_badge "${YK_UI_ACCENT}" "${yk_cv_text}")"
+    yk_cv_chip="$(yk_ui_chip "platform ${yk_cv_platform}")"
+    yk_gum join --horizontal "${yk_cv_badge}" " " "${yk_cv_chip}"
+    return 0
+  fi
+  yk_version
   printf 'platform: %s\n' "${yk_cv_platform}"
 }
 
 yk_doctor_row() {
+  if yk_ui_out; then
+    case "$2" in
+    ok) yk_dw_state="@ok:ok" ;;
+    *) yk_dw_state="@bad:$2" ;;
+    esac
+    YK_DOCTOR_ROWS="${YK_DOCTOR_ROWS}$1	${yk_dw_state}	$3
+"
+    return 0
+  fi
   printf '%-18s %-8s %s\n' "$1" "$2" "$3"
+}
+
+yk_doctor_report() {
+  if ! yk_ui_out; then
+    return 0
+  fi
+  printf 'Tool\tState\tDetail\n%s' "${YK_DOCTOR_ROWS}" | yk_ui_table
+  if [ "$1" -ne 0 ]; then
+    yk_ui_log ERROR "a required tool is missing. install it and run yakitsuke doctor again."
+    return 0
+  fi
+  yk_ui_done "Ready. Every tool yakitsuke needs is here."
+}
+
+yk_doctor_gum() {
+  yk_dg_found="$(command -v gum 2>/dev/null || true)"
+  if [ -z "${yk_dg_found}" ]; then
+    yk_doctor_row gum missing "install with: brew install gum, or see https://github.com/charmbracelet/gum"
+    return 1
+  fi
+  yk_dg_raw="$(gum --version 2>/dev/null || true)"
+  yk_dg_version="$(yk_flavor_version "${yk_dg_raw}")"
+  yk_doctor_row gum ok "${yk_dg_found}${yk_dg_version:+, ${yk_dg_version}}"
 }
 
 yk_flavor_version() {
@@ -182,6 +236,7 @@ yk_doctor_filter() {
 
 yk_doctor() {
   yk_dr_status=0
+  yk_doctor_gum || yk_dr_status=1
   yk_doctor_tool ffmpeg required "brew install ffmpeg, or apt install ffmpeg" || yk_dr_status=1
   yk_doctor_tool ffprobe required "installed with ffmpeg" || yk_dr_status=1
   yk_doctor_tool vcdxbuild required "brew install vcdimager, or apt install vcdimager" || yk_dr_status=1
@@ -194,6 +249,7 @@ yk_doctor() {
   yk_doctor_filter subtitles "needed to burn subtitles: brew install ffmpeg-full"
   yk_doctor_filter zscale "16-bit colour conversion: an ffmpeg built with zimg"
   yk_doctor_filter soxr "finer audio resampling: an ffmpeg built with libsoxr"
+  yk_doctor_report "${yk_dr_status}"
   return "${yk_dr_status}"
 }
 
@@ -203,6 +259,11 @@ yk_interactive() {
 }
 
 yk_prompt() {
+  if yk_ui_prompts; then
+    yk_pd_answer="$(yk_ui_input "${1%%, *}" "${1#*, }")" || return 1
+    printf '%s\n' "${yk_pd_answer:-$2}"
+    return 0
+  fi
   if [ -n "$2" ]; then
     printf '%s [%s]: ' "$1" "$2" >&2
   else

@@ -130,8 +130,41 @@ yk_run_target() {
   [ "${YK_PULLDOWN}" = no ] || yk_info "        film kept at 23.976 fps, shown at 29.97 through 3:2 pulldown flags"
 }
 
+yk_report_box() {
+  yk_rb_text="$1"
+  set --
+  while IFS= read -r yk_rb_line; do
+    case "${yk_rb_line}" in
+    "") continue ;;
+    " "*) set -- "$@" "" "${yk_rb_line#"${yk_rb_line%%[! ]*}"}" ;;
+    *)
+      yk_rb_value="${yk_rb_line#*:}"
+      set -- "$@" "${yk_rb_line%%:*}:" "${yk_rb_value#"${yk_rb_value%%[! ]*}"}"
+      ;;
+    esac
+  done <<EOF
+${yk_rb_text}
+EOF
+  yk_ui_summary "$@"
+}
+
+yk_run_confirm() {
+  [ "${YK_DRY_RUN}" = no ] && yk_ui_prompts || return 0
+  if ! yk_ui_confirm "Encode ${YK_TOTAL} disc(s)?" "Encode" "Stop"; then
+    yk_error "stopped: nothing was encoded."
+    return 1
+  fi
+}
+
 yk_run_report() {
   [ "${YK_JSON}" = no ] || return 0
+  if [ "${YK_SUMMARY_BOXED}" = no ] && yk_ui_out; then
+    YK_SUMMARY_BOXED=yes
+    yk_rr_text="$(yk_run_report)"
+    YK_SUMMARY_BOXED=no
+    yk_report_box "${yk_rr_text}"
+    return 0
+  fi
   printf '\n'
   yk_info "Source: $(basename -- "${YK_INPUT}")"
   yk_rr_aspect="$(awk -v d="${YK_DAR}" 'BEGIN { printf "%.3f", d }')"
@@ -295,7 +328,11 @@ EOF2
     yk_error "${yk_rs_full} image(s) do not fit the selected media."
     return 1
   fi
-  yk_info "Wrote ${YK_TOTAL} ${YK_FORMAT_NAME} image(s) to ${YK_OUTPUT_DIR}."
+  if yk_ui_out && [ "${YK_JSON}" = no ]; then
+    yk_ui_done "Wrote ${YK_TOTAL} ${YK_FORMAT_NAME} image(s) to ${YK_OUTPUT_DIR}."
+  else
+    yk_info "Wrote ${YK_TOTAL} ${YK_FORMAT_NAME} image(s) to ${YK_OUTPUT_DIR}."
+  fi
   yk_json_report
 }
 
@@ -307,6 +344,7 @@ yk_run() {
   yk_subs_prepare || return 1
   yk_run_plan
   yk_run_report
+  yk_run_confirm || return 1
   if [ "${YK_DRY_RUN}" = yes ]; then
     yk_run_dry
     yk_json_report

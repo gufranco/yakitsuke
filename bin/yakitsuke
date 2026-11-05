@@ -15,6 +15,8 @@ YK_SHARE="$(cd "${yk_self%/*}/../share" && pwd)" || exit 1
 
 # shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${YK_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/ui.sh
+. "${YK_LIB}/ui.sh"
 # shellcheck source=SCRIPTDIR/../lib/cli.sh
 . "${YK_LIB}/cli.sh"
 # shellcheck source=SCRIPTDIR/../lib/args.sh
@@ -56,6 +58,9 @@ yk_interrupted() {
 }
 
 yk_ask() {
+  if yk_ui_prompts; then
+    yk_ui_header
+  fi
   YK_INPUT="$(yk_ask_required "Video file" "no video given")" || return 1
   YK_SUBTITLES="$(yk_prompt "Subtitle file, Enter for none" "")" || return 1
 }
@@ -77,6 +82,44 @@ yk_start() {
 }
 
 yk_main() {
+  yk_mn_count=$#
+  yk_mn_literal=no
+  while [ "${yk_mn_count}" -gt 0 ]; do
+    yk_mn_arg="$1"
+    shift
+    yk_mn_count=$((yk_mn_count - 1))
+    case "${yk_mn_literal}:${yk_mn_arg}" in
+    no:--) yk_mn_literal=yes ;;
+    no:--theme=*)
+      YK_THEME="${yk_mn_arg#--theme=}"
+      continue
+      ;;
+    no:--theme)
+      [ "${yk_mn_count}" -gt 0 ] || yk_main_stop "option '--theme' needs a value"
+      YK_THEME="$1"
+      shift
+      yk_mn_count=$((yk_mn_count - 1))
+      continue
+      ;;
+    *) ;;
+    esac
+    set -- "$@" "${yk_mn_arg}"
+  done
+  yk_ui_setup || yk_main_fail "${YK_UI_PROBLEM}"
+  yk_dispatch "$@"
+}
+
+yk_main_stop() {
+  yk_cli_hint "$1"
+  exit 1
+}
+
+yk_main_fail() {
+  yk_error "$1"
+  exit 1
+}
+
+yk_dispatch() {
   case "${1:-}" in
   help | -h | --help) yk_usage ;;
   version | -V | --version) yk_cli_version ;;
