@@ -261,23 +261,19 @@ yk_interactive() {
 yk_prompt() {
   if yk_ui_prompts; then
     yk_pd_answer="$(yk_ui_input "${1%%, *}" "${1#*, }")" || return 1
-    printf '%s\n' "${yk_pd_answer:-$2}"
+    printf '%s\n' "${yk_pd_answer}"
     return 0
   fi
-  if [ -n "$2" ]; then
-    printf '%s [%s]: ' "$1" "$2" >&2
-  else
-    printf '%s: ' "$1" >&2
-  fi
+  printf '%s: ' "$1" >&2
   yk_pr_answer=""
   IFS= read -r yk_pr_answer || [ -n "${yk_pr_answer}" ] || return 1
-  printf '%s\n' "${yk_pr_answer:-$2}"
+  printf '%s\n' "${yk_pr_answer}"
 }
 
 yk_ask_required() {
   yk_ar_tries=0
   while [ "${yk_ar_tries}" -lt 3 ]; do
-    yk_ar_value="$(yk_prompt "$1" "")" || return 1
+    yk_ar_value="$(yk_prompt "$1")" || return 1
     if [ -n "${yk_ar_value}" ]; then
       printf '%s\n' "${yk_ar_value}"
       return 0

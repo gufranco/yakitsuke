@@ -62,7 +62,7 @@ yk_ask() {
     yk_ui_header
   fi
   YK_INPUT="$(yk_ask_required "Video file" "no video given")" || return 1
-  YK_SUBTITLES="$(yk_prompt "Subtitle file, Enter for none" "")" || return 1
+  YK_SUBTITLES="$(yk_prompt "Subtitle file, Enter for none")" || return 1
 }
 
 yk_start() {
