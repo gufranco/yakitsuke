@@ -204,7 +204,7 @@ yk_tool_flavor() {
 yk_doctor_found() {
   yk_dfo_note=""
   case "${1##*/}" in
-  awk | sed | iconv) yk_dfo_note="$(yk_tool_flavor "$1")" ;;
+  awk | sed | iconv | stat) yk_dfo_note="$(yk_tool_flavor "$1")" ;;
   *) ;;
   esac
   printf '%s%s\n' "$1" "${yk_dfo_note:+, ${yk_dfo_note}}"
@@ -240,7 +240,7 @@ yk_doctor() {
   yk_doctor_tool ffmpeg required "brew install ffmpeg, or apt install ffmpeg" || yk_dr_status=1
   yk_doctor_tool ffprobe required "installed with ffmpeg" || yk_dr_status=1
   yk_doctor_tool vcdxbuild required "brew install vcdimager, or apt install vcdimager" || yk_dr_status=1
-  for yk_dr_tool in awk sed iconv file; do
+  for yk_dr_tool in awk sed iconv file stat; do
     yk_doctor_tool "${yk_dr_tool}" required "required" || yk_dr_status=1
   done
   yk_doctor_tool mpeg2enc optional "mjpegtools, the better encoder"
