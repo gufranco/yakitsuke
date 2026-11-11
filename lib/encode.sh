@@ -189,6 +189,11 @@ yk_mpeg2enc_profile() {
   printf '%s\n' "-f 1 -b 1152 -a 2"
 }
 
+yk_mpeg2enc_stream() {
+  # shellcheck disable=SC2086
+  mpeg2enc -v 0 $1 -F "${YK_RATE_CODE}" -n "${YK_NORM}" -K tmpgenc -r 16 -4 1 -2 1 -E -10 -o video.m1v
+}
+
 yk_encode_with_mpeg2enc() {
   rm -f "${YK_WORK}/ffmpeg.status"
   yk_em_profile="$(yk_mpeg2enc_profile)"
@@ -197,10 +202,7 @@ yk_encode_with_mpeg2enc() {
     {
       yk_ffmpeg_disc y4m "$1" "$2"
       printf '%s\n' "$?" >ffmpeg.status
-    } | {
-      # shellcheck disable=SC2086
-      mpeg2enc -v 0 ${yk_em_profile} -F "${YK_RATE_CODE}" -n "${YK_NORM}" -K tmpgenc -r 16 -4 1 -2 1 -E -10 -o video.m1v
-    }
+    } | yk_mpeg2enc_stream "${yk_em_profile}"
   ) 2>"${YK_WORK}/encode.log" || return 1
   yk_em_status="$(cat "${YK_WORK}/ffmpeg.status" 2>/dev/null || true)"
   [ "${yk_em_status}" = 0 ]
