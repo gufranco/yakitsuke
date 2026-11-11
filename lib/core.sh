@@ -102,9 +102,7 @@ yk_iso_label() {
 }
 
 yk_file_bytes() {
-  yk_fb_bytes="$(wc -c <"$1")"
-  printf '%s\n' "${yk_fb_bytes}" | tr -d '[:space:]'
-  printf '\n'
+  stat -c %s "$1" 2>/dev/null || stat -f %z "$1"
 }
 
 yk_lines() {
