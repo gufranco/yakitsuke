@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.1](https://github.com/gufranco/yakitsuke/compare/v1.7.0...v1.7.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* list stat in doctor ([90f5d4f](https://github.com/gufranco/yakitsuke/commit/90f5d4f2cef3c642d782da14df3a62f9b1865fc9))
+* read file sizes past 4 GiB under BusyBox ([f8d0c08](https://github.com/gufranco/yakitsuke/commit/f8d0c081f83245e4eccaa400aa0e095659616a73))
+* size a file whose name starts with a dash ([483bfba](https://github.com/gufranco/yakitsuke/commit/483bfba4b34f6ab81fd29d91d1a116461d4e9f67))
+
 # [1.7.0](https://github.com/gufranco/yakitsuke/compare/v1.6.0...v1.7.0) (2026-11-05)
 
 
