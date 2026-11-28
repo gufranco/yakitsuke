@@ -6,7 +6,7 @@ updates:
     directory: /
     schedule:
       interval: cron
-      cronjob: "0 5,13,21 * * *"
+      cronjob: "0 5 * * *"
     commit-message:
       prefix: ci
     labels:
@@ -20,7 +20,7 @@ updates:
     directory: /
     schedule:
       interval: cron
-      cronjob: "0 5,13,21 * * *"
+      cronjob: "0 5 * * *"
     commit-message:
       prefix: build
     labels:
